@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="8.3312082mm"
+   height="9.8213434mm"
+   viewBox="0 0 8.3312082 9.8213434"
+   version="1.1"
+   id="svg8">
+  <defs
+     id="defs2">
+    <rect
+       x="39.309525"
+       y="37.041668"
+       width="119.44048"
+       height="74.839287"
+       id="rect835" />
+  </defs>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     transform="translate(-44.89881,-12.92674)">
+    <text
+       xml:space="preserve"
+       id="text833"
+       style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:11.28889999999999993px;line-height:1.25;font-family:Cochin;-inkscape-font-specification:'Cochin Bold Italic';white-space:pre;shape-inside:url(#rect835);fill:#000000;fill-opacity:1;stroke:none;"
+       transform="translate(6.4255952,-26.458333)"><tspan
+         x="39.308594"
+         y="46.948637"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:11.2889px;font-family:Cochin;-inkscape-font-specification:'Cochin Bold Italic'">Q</tspan></tspan></text>
+    <path
+       style="fill:#0052ff;stroke-width:2.69966"
+       d="m 189.01216,73.847085 c 3.87407,-4.288128 6.77302,-12.047819 6.79095,-18.177453 0.009,-3.03626 -0.81866,-4.577767 -3.20581,-5.971644 -1.21659,-0.710377 -1.0576,-0.766146 1.07143,-0.375831 1.375,0.25208 3.23756,0.925728 4.13902,1.496996 6.08257,3.854597 1.98859,17.957981 -6.9272,23.863553 -4.38185,2.902421 -4.99695,2.627324 -1.86839,-0.835621 z"
+       id="path839"
+       transform="scale(0.26458333)" />
+  </g>
+</svg>
