@@ -1,7 +1,16 @@
+
+<footer class="footer" th:fragment="footer" th:align="center">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <p>Copyright &copy; <span th:text="${new java.util.Date().getYear()+1900}"></span></p>
+            </div>
+
+        </div>
+        <p class="pull-right"><a href="/#">Back to top</a></p>
+    </div>
+</footer>
+
 <script type="text/javascript" th:src="@{/js/jquery.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.min.js}"></script>
-
-<div th:fragment="footer" th:align="center">
-    CorpoSense &copy; <span th:text="${new java.util.Date().getYear()+1900}"></span>
-</div>
-
+<script type="text/javascript" th:src="@{/js/app.js}"></script>

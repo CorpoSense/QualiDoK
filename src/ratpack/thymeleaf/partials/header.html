@@ -1,3 +1,58 @@
 <div th:fragment="header" th:align="center">
-    <a th:href="@{/}">Home</a>
+
+    <nav class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <a class="navbar-brand" th:href="@{/}">
+                    <img class="logo" th:src="@{/images/logo.svg}" alt="QualiDoK" width="80%" />
+                </a>
+            </div>
+
+            <div class="collapse navbar-collapse navbar-ex1-collapse" role="navigation">
+                <ul class="nav navbar-nav">
+
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="/#" id="loading">Repertoires <b class="caret"></b></a>
+                        <ul class="dropdown-menu" id="directories">
+                        </ul>
+                    </li>
+
+<!--                    <% if (model.user) { %>-->
+
+                    <!--            <li class="controller">-->
+                    <!--              <a href="/admin"><i class="glyphicon glyphicon-user"></i> Administration</a>-->
+                    <!--            </li>-->
+
+                    <!--            <li class="controller">-->
+                    <!--              <a href="/server"><i class="glyphicon glyphicon-hdd"></i> Servers</a>-->
+                    <!--            </li>-->
+<!--                    <% } %>-->
+
+                    <li class="controller">
+                        <a href="/upload"><i class="glyphicon glyphicon-upload"></i> Upload</a>
+                    </li>
+
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+
+                    <li class="controller">
+<!--                        <% if (model.user) { %>-->
+<!--                        <a href="/logout">Sign out (${model.user.username})</a>-->
+<!--                        <% } else { %>-->
+<!--                        <a href="/login"> Login </a>-->
+<!--                        <% } %>-->
+                    </li>
+
+                </ul>
+            </div>
+
+        </div><!-- .container -->
+    </nav>
 </div>
