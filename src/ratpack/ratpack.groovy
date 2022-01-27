@@ -11,7 +11,6 @@ ratpack {
     }
     handlers {
         get{
-            Date d = new java.util.Date()
             render(view("index", [user:'admin']))
         }
         // Serve assets from 'public'
