@@ -1,0 +1,27 @@
+.idea
+.gradle
+.gradle/**
+**/build/
+!src/**/build/
+gradle/
+gradlew*
+src/ratpack/public/uploads/
+src/ratpack/public/generatedFiles/
+public/uploads/
+public/generatedFiles/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
+!gradle-wrapper.jar
+
+# Cache of project
+.gradletasknamecache
+
+# Work around https://youtrack.jetbrains.com/issue/IDEA-116898
+# gradle/wrapper/gradle-wrapper.properties
+
+# Mac
+.DS_Store
+**/.DS_Store

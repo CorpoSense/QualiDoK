@@ -1,0 +1,50 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.io.ratpack:ratpack-gradle:1.10.0-milestone-3"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+plugins {
+    id 'groovy'
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+apply plugin: "io.ratpack.ratpack-groovy"
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: "idea"
+
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+
+    implementation 'org.codehaus.groovy:groovy-all:2.5.6'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation ratpack.dependency("thymeleaf3")
+
+    //ocr project dependencies
+    implementation 'net.sourceforge.tess4j:tess4j:4.1.1'
+    implementation 'com.itextpdf:itextpdf:5.5.13.2'
+    implementation 'org.im4java:im4java:1.4.0'
+    implementation 'org.apache.pdfbox:pdfbox:2.0.24'
+}
+
+dependencies {
+    runtimeOnly 'org.slf4j:slf4j-simple:1.7.32'
+}
+
+
+
+test {
+    useJUnitPlatform()
+}
