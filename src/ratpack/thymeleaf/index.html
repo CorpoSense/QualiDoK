@@ -7,6 +7,11 @@
     <title>QualiDoK</title>
     <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+    <style>
+        #page-content {
+            margin-top: 60px;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="partials/header" />
@@ -23,7 +28,6 @@
         <div class="col-sm-3">
             <div class="form-group">
                 <select id="folderId" class="form-control input-lg">
-                    <!-- option value="132">Réglementation</option -->
                     <option value="4">Directories</option>
                 </select>
             </div>

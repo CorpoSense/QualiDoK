@@ -29,19 +29,33 @@ dependencies {
 
 //    implementation 'org.codehaus.groovy:groovy-all:2.5.6'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testImplementation("org.spockframework:spock-core:1.0-groovy-2.4"){
+        exclude module: "groovy-all"
+    }
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+
+    implementation ratpack.dependency("pac4j")
+    implementation ratpack.dependency('h2')
+    implementation ratpack.dependency('hikari')
     implementation ratpack.dependency("thymeleaf3")
+
+    implementation 'org.pac4j:pac4j-http:1.8.5'
+    implementation 'com.j256.ormlite:ormlite-core:4.48'
+    implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
 
     //ocr project dependencies
     implementation 'net.sourceforge.tess4j:tess4j:4.1.1'
     implementation 'com.itextpdf:itextpdf:5.5.13.2'
     implementation 'org.im4java:im4java:1.4.0'
     implementation 'org.apache.pdfbox:pdfbox:2.0.24'
-    runtimeOnly 'org.slf4j:slf4j-simple:1.7.32'
 
-    testImplementation("org.spockframework:spock-core:1.0-groovy-2.4"){
-        exclude module: "groovy-all"
-    }
+    // The production code uses the SLF4J logging API at compile time
+    implementation 'org.slf4j:slf4j-api:1.7.32'
+    implementation 'org.slf4j:slf4j-simple:1.7.32'
+
+    // okhttp
+    implementation 'io.github.http-builder-ng:http-builder-ng-okhttp:1.0.4'
+
 }
 
 test {
