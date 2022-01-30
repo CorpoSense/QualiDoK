@@ -13,6 +13,9 @@ ratpack {
         get{
             render(view("index", [user:'admin']))
         }
+        get('/server'){
+            render(view('server', [:]))
+        }
         // Serve assets from 'public'
         files { dir "static" }
     }
