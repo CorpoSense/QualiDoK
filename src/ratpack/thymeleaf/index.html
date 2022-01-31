@@ -7,11 +7,7 @@
     <title>QualiDoK</title>
     <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
     <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
-    <style>
-        #page-content {
-            margin-top: 60px;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
 <div th:replace="partials/header" />
@@ -55,7 +51,7 @@
             <ul id="documents" style="list-style: decimal;"></ul>
         </div>
     </div>
-</div>
+</div></div><!-- #page-content -->
 
 <div th:replace="partials/footer" />
 

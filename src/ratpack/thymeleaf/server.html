@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="description" content="QualiDoK, document management system file.">
+    <meta name="author" content="CorpoSense">
+    <title>QualiDoK</title>
+    <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div th:replace="partials/header" />
+
+<div id="page-content" class="container">
+
+    <div class="row">
+        <div class="col-md-12">
+
+            <div class="page-header">
+                <h4>Manager Servers</h4>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <form action="server" method="post" role="form" class="form-vertical">
+                <div class="form-group">
+                    <label for="name" class="control-label">Name</label>
+                    <input type="text" class="form-control" name="name" id="name" placeholder="Main Server...">
+                </div>
+                <div class="form-group">
+                    <label for="url" class="control-label">URL</label>
+                    <input type="text" class="form-control" name="url" id="url" placeholder="http://127.0.0.1:8080">
+                </div>
+                <div class="form-group">
+                    <label for="username" class="control-label">User Name</label>
+                    <input type="text" class="form-control" name="username" id="username" placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="control-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="password">
+                </div>
+                <div class="form-group pull-right">
+                    <input type="submit" class="btn btn-success" value="Save">
+                </div>
+            </form>
+        </div>
+    </div><!-- .row -->
+
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Host</th>
+                    <th>Username</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="server: ${servers}">
+                        <td th:text="${server.id}"></td>
+                        <td th:text="${server.name}"></td>
+                        <td th:text="${server.url}"></td>
+                        <td th:text="${server.username}"></td>
+                        <td>
+                            <form action="server/delete" method="post">
+                                <input type="hidden" name="id" th:value="${server.id}" >
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <span class="glyphicon glyphicon-trash"></span> Delete
+                                    </button>
+<!--                                <button type="button" class="btn btn-sm btn-success">-->
+<!--                                    <span class="glyphicon glyphicon-pencil"></span>-->
+<!--                                </button>-->
+                            </form>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div><!-- .col-md-12 -->
+    </div><!-- .row -->
+
+</div><!-- #page-content -->
+
+<div th:replace="partials/footer" />
+
+</body>
+</html>
