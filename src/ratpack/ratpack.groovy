@@ -27,8 +27,20 @@ ratpack {
         bindInstance (Service, new ConnectionInitializer())
     }
     handlers {
+
         get{
             render(view("index", [user:'admin']))
+        }
+
+        prefix('upload') {
+            // path('/pdf'){}
+            all {
+                byMethod {
+                    get {
+                        render(view("upload", [:]))
+                    }
+                }
+            }
         }
 
 
