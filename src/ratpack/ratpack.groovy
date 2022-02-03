@@ -36,14 +36,15 @@ ratpack {
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
+                sleep(500)
                 event.registry.get(AccountService)
-                        .create(new Account([
+                        .create(new Account(
                                 name: 'Main Server',
                                 url: 'http://127.0.0.1:8080',
                                 username: 'admin',
                                 password: 'admin',
                                 active: true
-                        ])).then({Integer id ->
+                        )).then({ Integer id ->
                     log.info("Server N°: ${id} created.")
                 })
             }
@@ -51,7 +52,7 @@ ratpack {
     }
     handlers {
 
-        get{
+        get {
             render(view("index", [user:'admin']))
         }
 
