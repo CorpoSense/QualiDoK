@@ -3,18 +3,26 @@ import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
 import com.corposense.services.AccountService
 import com.zaxxer.hikari.HikariConfig
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import ratpack.form.Form
 import ratpack.hikari.HikariModule
 import ratpack.service.Service
+import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
 import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.fromJson
 
+
+final Logger log = LoggerFactory.getLogger(ratpack)
+
 ratpack {
     serverConfig {
+        development(true)
         port(3000)
+        maxContentLength(26214400)
     }
     bindings {
         module (ThymeleafModule)
@@ -25,6 +33,21 @@ ratpack {
         bind (H2ConnectionDataSource)
         bind (AccountService)
         bindInstance (Service, new ConnectionInitializer())
+
+        add Service.startup('startup'){ StartEvent event ->
+            if (serverConfig.development){
+                event.registry.get(AccountService)
+                        .create(new Account([
+                                name: 'Main Server',
+                                url: 'http://127.0.0.1:8080',
+                                username: 'admin',
+                                password: 'admin',
+                                active: true
+                        ])).then({Integer id ->
+                    log.info("Server N°: ${id} created.")
+                })
+            }
+        }
     }
     handlers {
 
@@ -85,9 +108,6 @@ ratpack {
                 } // byMethod
             } // all
         }
-
-
-
 
         // Serve assets from 'public'
         files { dir "static" }

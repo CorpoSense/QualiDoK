@@ -20,4 +20,6 @@ class Account {
     String username
     @DatabaseField
     String password
+    @DatabaseField
+    Boolean active
 }
