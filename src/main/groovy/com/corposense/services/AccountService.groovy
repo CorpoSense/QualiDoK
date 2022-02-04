@@ -41,4 +41,11 @@ class AccountService {
             accountDao.deleteById(id)
         }
     }
+
+    Promise<List<Account>> getActive(boolean active = true) {
+        Blocking.get {
+            accountDao.queryForEq('active', active)
+        }
+    }
+
 }

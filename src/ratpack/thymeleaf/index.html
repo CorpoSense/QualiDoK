@@ -14,7 +14,18 @@
 
 <div id="page-content" class="container">
 
-    <div class="row">
+    <div class="row" th:if="${account} == null">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <p th:text="${message}"></p>
+            </div>
+            <p>
+                Click <a href="/server">here to create a new Server account.</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="row" th:if="${account} != null">
         <div class="col-sm-8">
             <div class="form-group">
                 <input name="pattern" autofocus type="text" id="pattern" class="form-control input-lg" placeholder="Search for content..." value="">
@@ -43,15 +54,11 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div class="alert alert-info alert-lg">
-                <p id="result">Result of search</p>
-            </div>
-        </div>
-        <div class="col-md-12">
             <ul id="documents" style="list-style: decimal;"></ul>
         </div>
     </div>
-</div></div><!-- #page-content -->
+</div>
+</div><!-- #page-content -->
 
 <div th:replace="partials/footer" />
 

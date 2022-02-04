@@ -52,8 +52,15 @@ ratpack {
     }
     handlers {
 
-        get {
-            render(view("index", [user:'admin']))
+        get { AccountService accountService ->
+            accountService.getActive().then({ List<Account> accounts ->
+                Account account = accounts[0]
+                if (accounts.isEmpty() || !account){
+                    render(view("index", [message:'You must create a server account.']))
+                } else {
+                    render(view("index", ['account': account]))
+                }
+            })
         }
 
         prefix('upload') {
