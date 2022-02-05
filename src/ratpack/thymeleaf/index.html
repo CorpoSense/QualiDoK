@@ -50,13 +50,33 @@
             <!-- <input type="number" id="maxHits" class="form-control" value="10" > -->
             <button type="button" id="btn-search" class="btn btn-lg btn-success"><i class="glyphicon glyphicon-search"></i> Search</button>
         </div>
-    </div>
+    </div><!-- .row -->
 
+    <!-- List of Documents -->
     <div class="row">
         <div class="col-md-12">
-            <ul id="documents" style="list-style: decimal;"></ul>
-        </div>
-    </div>
+        <h1>Documents</h1>
+        <select id="folders" name="folders">
+            <option value="root">- Root</option>
+        </select>
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Document</th>
+                <th>Version</th>
+                <th>Tags</th>
+                <th>Date</th>
+                <th>Owner</th>
+                <th>Size</th>
+            </tr>
+            </thead>
+            <tbody id="documents">
+            </tbody>
+        </table>
+        </div><!-- .col-md-12 -->
+    </div><!-- .row -->
+
 </div>
 </div><!-- #page-content -->
 
