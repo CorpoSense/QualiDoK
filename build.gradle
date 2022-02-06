@@ -7,6 +7,7 @@ buildscript {
     }
     dependencies {
         classpath "io.ratpack:ratpack-gradle:1.6.1"
+        classpath "io.ratpack:ratpack-groovy-test:1.6.1"
         //classpath "gradle.plugin.io.ratpack:ratpack-gradle:1.10.0-milestone-3"
         classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
     }
