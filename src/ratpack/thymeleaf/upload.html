@@ -14,11 +14,33 @@
 
 <div id="page-content" class="container">
 
+    <div class="row" th:if="${message} == ''">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <p th:text="${message}"></p>
+            </div>
+            <p>
+                Click <a href="/server">here to create a new Server account.</a>
+            </p>
+        </div>
+    </div><!-- .row -->
+
+
     <div class="row">
         <div class="col-md-12">
-            <h4>Upload</h4>
-        </div>
-    </div>
+            <h2>Upload a document</h2>
+            <!-- Upload Form -->
+            <form action="upload" method="post" class="form-vertical" role="form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="control-label" for="pdf">Select a PDF:</label>
+                    <input type="file" name="pdf" id="pdf" multiple="multiple" class="form-control">
+                </div>
+                <div class="form-group pull-right">
+                    <input type="submit" class="btn btn-primary" value="Upload">
+                </div>
+            </form>
+        </div><!-- .col-md-12 -->
+    </div><!-- .row -->
 
 </div><!-- #page-content -->
 

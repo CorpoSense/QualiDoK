@@ -2,14 +2,20 @@ import com.corposense.ConnectionInitializer
 import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
 import com.corposense.services.AccountService
+import com.corposense.services.UploadService
 import com.zaxxer.hikari.HikariConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ratpack.form.Form
+import ratpack.form.UploadedFile
 import ratpack.hikari.HikariModule
+import ratpack.server.BaseDir
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
+
+import java.nio.file.Path
+
 import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
@@ -17,6 +23,11 @@ import static ratpack.jackson.Jackson.fromJson
 
 
 final Logger log = LoggerFactory.getLogger(ratpack)
+
+def uploadDir = 'uploads'
+def publicDir = 'public'
+Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
+Path uploadPath = baseDir.resolve(uploadDir)
 
 ratpack {
     serverConfig {
@@ -32,6 +43,7 @@ ratpack {
         })
         bind (H2ConnectionDataSource)
         bind (AccountService)
+        bind (UploadService)
         bindInstance (Service, new ConnectionInitializer())
 
         add Service.startup('startup'){ StartEvent event ->
@@ -48,6 +60,15 @@ ratpack {
                     log.info("Server N°: ${id} created.")
                 })
             }
+
+            new File("${publicDir}/${uploadDir}").with { File baseUpload ->
+                if (!baseUpload.exists()){
+                    if (baseUpload.mkdirs()){
+                        log.info("Created directory: ${baseUpload.absolutePath}")
+                    }
+                }
+            }
+
         }
     }
     handlers {
@@ -65,10 +86,38 @@ ratpack {
 
         prefix('upload') {
             // path('/pdf'){}
-            all {
+            all { AccountService accountService ->
                 byMethod {
                     get {
-                        render(view("upload", [:]))
+                        render(view('upload'))
+                    }
+                    post { UploadService uploadService ->
+
+                        accountService.getActive().then({ List<Account> accounts ->
+                            Account account = accounts[0]
+                            if (accounts.isEmpty() || !account){
+                                render(view('upload', [message:'You must create a server account.']))
+                            } else {
+                                parse(Form).then { Form map ->
+                                    map.files('pdf').each { UploadedFile uploadedFile ->
+                                        if (uploadedFile.contentType.type.contains('pdf')){
+                                            log.info("${uploadedFile.fileName} (${uploadedFile.bytes.size()})")
+                                            File outputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                            uploadedFile.writeTo(outputFile.newOutputStream())
+                                            uploadService.uploadFile(outputFile, account.url).then { Boolean result ->
+                                                if (result){
+                                                    log.info("file: ${outputFile.name} has been uploaded.")
+                                                } else {
+                                                    log.info("file cannot be uploaded.")
+                                                }
+                                            }
+                                        }
+                                    } // each()
+                                    render "uploaded: ${map.files('pdf').size()} file(s)"
+                                }
+                            }
+                        })
+
                     }
                 }
             }
