@@ -8,9 +8,6 @@ ports:
 tasks:
   - before: >
       source ~/.bashrc
-    init: >
-      convert --version
-      tesseract --version
   - init: |
       sudo mkdir -p public/uploads
       sudo chmod 777 -R public/uploads
