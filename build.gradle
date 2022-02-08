@@ -1,16 +1,14 @@
 buildscript {
     repositories {
         jcenter()
-//        maven {
-//            url "https://plugins.gradle.org/m2/"
-//        }
+       maven {
+           url "https://plugins.gradle.org/m2/"
+       }
     }
     dependencies {
         classpath "io.ratpack:ratpack-gradle:${ratpackVersion}"
         classpath "io.ratpack:ratpack-groovy-test:${ratpackVersion}"
-//        classpath "gradle.plugin.io.ratpack:ratpack-gradle:1.10.0-milestone-3"
-//        classpath "io.ratpack:ratpack-groovy-test:1.10.0-milestone-3"
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+        classpath "com.github.jengelman.gradle.plugins:shadow:${shadowVersion}"
     }
 }
 plugins {
@@ -36,14 +34,14 @@ dependencies {
 
 //    implementation 'org.codehaus.groovy:groovy-all:2.5.6'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testImplementation("org.spockframework:spock-core:1.0-groovy-2.4"){
+    testImplementation("org.spockframework:spock-core:${spockVersion}"){
         exclude module: "groovy-all"
     }
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 
-    implementation 'org.pac4j:pac4j-http:1.8.5'
-    implementation 'com.j256.ormlite:ormlite-core:4.48'
-    implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
+    implementation "org.pac4j:pac4j-http:${pac4jVersion}"
+    implementation "com.j256.ormlite:ormlite-core:${ormliteVersion}"
+    implementation "com.j256.ormlite:ormlite-jdbc:${ormliteVersion}"
 
     //ocr project dependencies
     implementation 'net.sourceforge.tess4j:tess4j:4.1.1'
