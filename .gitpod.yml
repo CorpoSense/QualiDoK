@@ -10,8 +10,8 @@ tasks:
       source ~/.bashrc
   - init: |
       sudo mkdir -p public/uploads
-      sudo chmod 777 -R public/uploads
+      sudo mkdir -p src/ratpack/public/uploads
     command: |
       gradle shadowJar
-      java -jar build/libs/QualiDoK-all.jar
+      java -jar build/libs/QualiDoK.jar
   - command: gp await-port 3000 && gp preview "$(gp url 3000)/"
