@@ -44,14 +44,17 @@ dependencies {
     implementation "com.j256.ormlite:ormlite-jdbc:${ormliteVersion}"
 
     //ocr project dependencies
-    implementation 'net.sourceforge.tess4j:tess4j:4.1.1'
+    implementation ('net.sourceforge.tess4j:tess4j:4.1.1'){
+        exclude group: 'ch.qos.logback', module: 'logback-classic'
+    }
     implementation 'com.itextpdf:itextpdf:5.5.13.2'
     implementation 'org.im4java:im4java:1.4.0'
     implementation 'org.apache.pdfbox:pdfbox:2.0.24'
 
     // The production code uses the SLF4J logging API at compile time
-    implementation 'org.slf4j:slf4j-api:1.7.32'
-    implementation 'org.slf4j:slf4j-simple:1.7.32'
+    runtime 'org.slf4j:slf4j-api:1.7.32'
+    runtime 'org.slf4j:slf4j-simple:1.7.32'
+
 
     // okhttp
     implementation 'io.github.http-builder-ng:http-builder-ng-okhttp:1.0.4'
