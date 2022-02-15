@@ -33,11 +33,11 @@ dependencies {
     implementation ratpack.dependency("thymeleaf3")
 
 //    implementation 'org.codehaus.groovy:groovy-all:2.5.6'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testImplementation("org.spockframework:spock-core:${spockVersion}"){
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${jupiterVersion}"
+    testImplementation("org.spockframework:spock-core:1.0-groovy-2.4"){
         exclude module: "groovy-all"
     }
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}"
 
     implementation "org.pac4j:pac4j-http:${pac4jVersion}"
     implementation "com.j256.ormlite:ormlite-core:${ormliteVersion}"
@@ -52,8 +52,8 @@ dependencies {
     implementation 'org.apache.pdfbox:pdfbox:2.0.24'
 
     // The production code uses the SLF4J logging API at compile time
-    runtime 'org.slf4j:slf4j-api:1.7.32'
-    runtime 'org.slf4j:slf4j-simple:1.7.32'
+    runtime "org.slf4j:slf4j-api:${slf4jVersion}"
+    runtime "org.slf4j:slf4j-simple:${slf4jVersion}"
 
 
     // okhttp
