@@ -3,8 +3,8 @@
 .gradle/**
 **/build/
 !src/**/build/
-gradle/
-gradlew*
+#gradle/
+#gradlew*
 src/ratpack/public/uploads/
 src/ratpack/public/generatedFiles/
 public/uploads/
