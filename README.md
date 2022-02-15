@@ -1,5 +1,8 @@
 # QualiDoK
 
+![build](https://github.com/CorpoSense/QualiDoK/actions/workflows/ratpack.yml/badge.svg)
+
+
 [![Open in GitPod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/from-referrer/)
 
 QualiDoK is web app uses a REST API as a layer on top of LogicalDOC Community Edition with additional features (Multi-Server, OCR...).
