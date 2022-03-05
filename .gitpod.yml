@@ -11,7 +11,8 @@ tasks:
   - init: |
       sudo mkdir -p public/uploads
       sudo mkdir -p src/ratpack/public/uploads
+      sudo chmod +x gradlew
     command: |
-      gradle shadowJar
+      ./gradlew shadowJar
       java -jar build/libs/QualiDoK.jar
   - command: gp await-port 3000 && gp preview "$(gp url 3000)/"
