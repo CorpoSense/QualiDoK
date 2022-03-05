@@ -28,3 +28,6 @@ gradle-app.setting
 
 # local path
 local.properties
+
+# ignore local properties
+gradle.properties
