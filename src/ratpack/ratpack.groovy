@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory
 import ratpack.form.Form
 import ratpack.form.UploadedFile
 import ratpack.hikari.HikariModule
+import ratpack.http.client.HttpClient
+import ratpack.http.client.ReceivedResponse
+import ratpack.http.client.RequestSpec
 import ratpack.server.BaseDir
 import ratpack.service.Service
 import ratpack.service.StartEvent
@@ -24,6 +27,7 @@ import static ratpack.jackson.Jackson.fromJson
 
 final Logger log = LoggerFactory.getLogger(ratpack)
 
+final int FOLDER_ID = 4
 def uploadDir = 'uploads'
 def publicDir = 'public'
 Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
@@ -52,7 +56,7 @@ ratpack {
                 event.registry.get(AccountService)
                         .create(new Account(
                                 name: 'Main Server',
-                                url: 'http://127.0.0.1:8080',
+                                url: 'http://192.168.43.35:8080',
                                 username: 'admin',
                                 password: 'admin',
                                 active: true
@@ -84,6 +88,28 @@ ratpack {
             })
         }
 
+        get('list') { HttpClient client, AccountService accountService ->
+            accountService.getActive().then({ List<Account> accounts ->
+                Account account = accounts[0]
+                if (accounts.isEmpty() || !account){
+                    // List of documents
+                    def folderId = request.queryParams['folderId']?:FOLDER_ID
+                    URI url = "${account.url}/logicaldoc/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                    client.get(url) { RequestSpec reqSpec ->
+                        reqSpec.basicAuth(account.username, account.password)
+                        reqSpec.headers.set ("Accept", 'application/json')
+                    }.then { ReceivedResponse res ->
+                        res.forwardTo(response)
+                        // def directories = new groovy.json.JsonSlurper(res.body.text)
+                        // render(view('list', [directories: directories]))
+                    }
+                } else {
+                    render(json([:]))
+                }
+
+            })
+        }
+
         prefix('upload') {
             // path('/pdf'){}
             all { AccountService accountService ->
@@ -104,7 +130,8 @@ ratpack {
                                             log.info("${uploadedFile.fileName} (${uploadedFile.bytes.size()})")
                                             File outputFile = new File("${uploadPath}", uploadedFile.fileName)
                                             uploadedFile.writeTo(outputFile.newOutputStream())
-                                            uploadService.uploadFile(outputFile, account.url).then { Boolean result ->
+                                            // TODO: we'll make the language dynamically detected
+                                            uploadService.uploadFile(outputFile, account.url, 100, 'fr').then { Boolean result ->
                                                 if (result){
                                                     log.info("file: ${outputFile.name} has been uploaded.")
                                                 } else {

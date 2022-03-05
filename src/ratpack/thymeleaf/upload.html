@@ -27,7 +27,8 @@
 
 
     <div class="row">
-        <div class="col-md-12">
+
+        <div class="col-md-6">
             <h2>Upload a document</h2>
             <!-- Upload Form -->
             <form action="upload" method="post" class="form-vertical" role="form" enctype="multipart/form-data">
@@ -39,7 +40,27 @@
                     <input type="submit" class="btn btn-primary" value="Upload">
                 </div>
             </form>
-        </div><!-- .col-md-12 -->
+        </div><!-- .col-md-6 -->
+
+        <div class="col-md-6">
+            <h2>Options:</h2>
+            <div class="form-group">
+                <label for="folderId">Directories:</label>
+                <select id="folderId" class="form-control">
+                    <option value="4">Directories</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="language">Language:</label>
+                <select id="language" class="form-control">
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
+                    <option value="ar">Arabic</option>
+                </select>
+            </div>
+        </div>
+
+
     </div><!-- .row -->
 
 </div><!-- #page-content -->
