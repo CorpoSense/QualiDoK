@@ -33,6 +33,14 @@ def publicDir = 'public'
 Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
 Path uploadPath = baseDir.resolve(uploadDir)
 
+String generatedFilesDir = "generatedFiles"
+String createdFilesDir = "createdFiles"
+Path baseGeneratedFilesDir = BaseDir.find("${publicDir}/${generatedFilesDir}")
+Path baseCreatedFilesDir = BaseDir.find("${publicDir}/${generatedFilesDir}/${createdFilesDir}")
+
+Path generatedFilesPath = baseGeneratedFilesDir.resolve(generatedFilesDir)
+Path createdFilesPath = baseCreatedFilesDir.resolve(createdFilesDir)
+
 ratpack {
     serverConfig {
         development(true)
@@ -131,6 +139,12 @@ ratpack {
                                             File outputFile = new File("${uploadPath}", uploadedFile.fileName)
                                             uploadedFile.writeTo(outputFile.newOutputStream())
                                             // TODO: we'll make the language dynamically detected
+                                            /*
+                                            TODO: 
+                                                1- Upload a document via the browser
+                                                2- Check using the preview if the result of OCR is satisfied
+                                                3- if it's ok then upload to LogicalDOC.
+                                             */
                                             uploadService.uploadFile(outputFile, account.url, 100, 'fr').then { Boolean result ->
                                                 if (result){
                                                     log.info("file: ${outputFile.name} has been uploaded.")
