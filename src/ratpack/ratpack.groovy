@@ -64,7 +64,7 @@ ratpack {
                 event.registry.get(AccountService)
                         .create(new Account(
                                 name: 'Main Server',
-                                url: 'http://192.168.43.35:8080',
+                                url: 'http://192.168.1.46:8080',
                                 username: 'admin',
                                 password: 'admin',
                                 active: true
