@@ -31,3 +31,9 @@ local.properties
 
 # ignore local properties
 gradle.properties
+
+# Application properties
+src/main/resources/application.properties
+
+# LogicalDOC DMS
+logicaldoc/
