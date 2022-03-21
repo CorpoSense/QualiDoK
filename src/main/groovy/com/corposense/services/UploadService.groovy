@@ -16,7 +16,7 @@ class UploadService {
         OkHttpBuilder.configure {
            request.uri = "${server}/logicaldoc/services/rest/document/upload".toURI() //this.server.uri
            request.auth.basic 'admin', 'admin' //this.server.username, this.server.password
-           request.contentType = 'application/json'
+//           request.contentType = 'application/json'
        }.post {
           request.uri.path = '/logicaldoc/services/rest/document/upload'
           request.contentType = 'multipart/form-data'

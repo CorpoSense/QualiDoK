@@ -64,7 +64,7 @@ ratpack {
                 event.registry.get(AccountService)
                         .create(new Account(
                                 name: 'Main Server',
-                                url: 'http://192.168.43.35:8080',
+                                url: 'http://127.0.0.1:8080',
                                 username: 'admin',
                                 password: 'admin',
                                 active: true
@@ -100,6 +100,8 @@ ratpack {
             accountService.getActive().then({ List<Account> accounts ->
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
+                    render(json([:]))
+                } else {
                     // List of documents
                     def folderId = request.queryParams['folderId']?:FOLDER_ID
                     URI url = "${account.url}/logicaldoc/services/rest/folder/listChildren?folderId=${folderId}".toURI()
@@ -111,8 +113,6 @@ ratpack {
                         // def directories = new groovy.json.JsonSlurper(res.body.text)
                         // render(view('list', [directories: directories]))
                     }
-                } else {
-                    render(json([:]))
                 }
 
             })
