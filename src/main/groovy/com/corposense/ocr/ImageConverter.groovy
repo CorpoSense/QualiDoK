@@ -1,13 +1,24 @@
 package com.corposense.ocr
 
+import com.google.inject.Inject
+import groovy.transform.CompileStatic
 import org.im4java.core.IM4JavaException
 
+@CompileStatic
 class ImageConverter {
 
-//    @Inject
-//    ImageConverter(){
-//    }
+    @Inject
+    ImageConverter(){
+    }
 
+    /**
+     * Create a searchable PDF containing only text
+     * @param inputFile
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws IM4JavaException
+     */
     String createTextOnlyPdf(String inputFile) throws IOException, InterruptedException, IM4JavaException {
         ImageProcessing image = new ImageProcessing(inputFile);
         String imageDeskew = image.rotateImage(inputFile, 1);
@@ -30,6 +41,7 @@ class ImageConverter {
      * @throws IOException
      * @throws InterruptedException
      * @throws IM4JavaException
+     * TODO: Need to apply a resize
      */
     String produceText(String inputFile) throws IOException, InterruptedException, IM4JavaException {
         ImageProcessing image = new ImageProcessing(inputFile)

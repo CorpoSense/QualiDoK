@@ -18,7 +18,7 @@ class PdfConverter {
         TextPdf.createTextOverlay( countAndExtract(inputFile) )
     }
 
-    int countAndExtract(String inputFile){
+    private int countAndExtract(String inputFile){
         int imageNum = ExtractImage.countImage(inputFile)
         ExtractImage.takeImageFromPdf(inputFile)
         return imageNum

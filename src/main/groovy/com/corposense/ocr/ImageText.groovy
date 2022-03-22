@@ -8,9 +8,11 @@ import java.nio.file.Paths
 
 class ImageText extends Tesseract {
 
+
+    static final String TESSERACT_DATA_PATH = System.getenv("TESSDATA_PREFIX")
     private String imagePath
-    public String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath().toString()
-    public File dir = new File(dirPath)
+    String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath().toString()
+    File dir = new File(dirPath)
 
     @Inject
     ImageText(String imagePath) {
@@ -19,7 +21,7 @@ class ImageText extends Tesseract {
 
     String generateText() {
         this.setTessVariable("user_defined_dpi", "300");
-        this.setDatapath(System.getenv("TESSDATA_PREFIX"))
+        this.setDatapath(TESSERACT_DATA_PATH)
         //set the English+Arabic+French language (need to be dynamic)
         this.setLanguage("ara+eng+fra")
         String fullText = null

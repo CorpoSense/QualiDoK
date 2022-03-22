@@ -1,6 +1,7 @@
 import com.corposense.ConnectionInitializer
 import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
+import com.corposense.ocr.ImageConverter
 import com.corposense.services.AccountService
 import com.corposense.services.UploadService
 import com.zaxxer.hikari.HikariConfig
@@ -16,9 +17,7 @@ import ratpack.server.BaseDir
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
-
 import java.nio.file.Path
-
 import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
@@ -28,6 +27,10 @@ import static ratpack.jackson.Jackson.fromJson
 final Logger log = LoggerFactory.getLogger(ratpack)
 
 final int FOLDER_ID = 4
+final String[] SUPPORTED_DOCS = ['pdf', 'doc', 'docx']
+final String[] SUPPORTED_IMAGES = ['png', 'jpg', 'jpeg']
+final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
+
 def uploadDir = 'uploads'
 def publicDir = 'public'
 Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
@@ -56,6 +59,7 @@ ratpack {
         bind (H2ConnectionDataSource)
         bind (AccountService)
         bind (UploadService)
+        bind(ImageConverter)
         bindInstance (Service, new ConnectionInitializer())
 
         add Service.startup('startup'){ StartEvent event ->
@@ -85,7 +89,7 @@ ratpack {
     }
     handlers {
 
-        get { AccountService accountService ->
+        get { AccountService accountService, ImageConverter imageConverter ->
             accountService.getActive().then({ List<Account> accounts ->
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
@@ -116,6 +120,10 @@ ratpack {
                 }
 
             })
+        } // list
+
+        get('preview'){
+            render('preview')
         }
 
         prefix('upload') {
@@ -125,27 +133,59 @@ ratpack {
                     get {
                         render(view('upload'))
                     }
-                    post { UploadService uploadService ->
-
+                    post { UploadService uploadService, ImageConverter imageConverter ->
                         accountService.getActive().then({ List<Account> accounts ->
                             Account account = accounts[0]
                             if (accounts.isEmpty() || !account){
                                 render(view('upload', [message:'You must create a server account.']))
                             } else {
                                 parse(Form).then { Form map ->
-                                    map.files('pdf').each { UploadedFile uploadedFile ->
+                                    List<UploadedFile> files = map.files('pdf')
+                                    log.info("Detected: ${files.size()} document(s).")
+                                    if (files.size() == 0){
+                                        render(view('preview', ['message': "No file uploaded!"]))
+                                    } else if (files.size() == 1){
+                                        // Single document upload
+                                        UploadedFile uploadedFile = files.first()
+                                        String fileType = uploadedFile.contentType.type
+                                        if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
+                                            // TODO: may need to back to /upload page
+                                            render(view('preview', ['message':'This type of file is not supported.']))
+                                            return
+                                        }
+                                        File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                        uploadedFile.writeTo(inputFile.newOutputStream())
+                                        log.info("File type: ${fileType}")
+                                        // TODO: support doc, docx document
+//                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){
+                                        if (fileType.contains('pdf')){
+                                            // Handle PDF document
+                                            render(view('preview', ['message':'This is a PDF document']))
+                                        } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
+                                            // Handle image document
+                                            String fullText = imageConverter.produceText(inputFile.path)
+                                            log.info("Extracted text: ${fullText}")
+                                            render(view('preview', ['message':'This is an image', 'fullText': fullText]))
+                                        } else {
+                                            // Handle other type of documents
+                                            render(view('preview', ['message':'This file type is not currently supported.']))
+                                        }
+
+                                    } else {
+                                        render(view('preview', ['message': "${files.size()} document(s)"]))
+                                    }
+                                    /*
+                                    files.each { UploadedFile uploadedFile ->
                                         if (uploadedFile.contentType.type.contains('pdf')){
                                             log.info("${uploadedFile.fileName} (${uploadedFile.bytes.size()})")
                                             File outputFile = new File("${uploadPath}", uploadedFile.fileName)
                                             uploadedFile.writeTo(outputFile.newOutputStream())
                                             // TODO: we'll make the language dynamically detected
-                                            /*
-                                            TODO: 
-                                                1- Upload a document via the browser
-                                                2- Check using the preview if the result of OCR is satisfied
-                                                3- if it's ok then upload to LogicalDOC.
-                                             */
-                                            uploadService.uploadFile(outputFile, account.url, 100, 'fr').then { Boolean result ->
+//                                            TODO:
+//                                                1- Upload a document via the browser
+//                                                2- Check using the preview if the result of OCR is satisfied
+//                                                3- if it's ok then upload to LogicalDOC.
+                                            uploadService.uploadFile(outputFile, account.url, 4, 'fr').then { Boolean result ->
                                                 if (result){
                                                     log.info("file: ${outputFile.name} has been uploaded.")
                                                 } else {
@@ -154,7 +194,8 @@ ratpack {
                                             }
                                         }
                                     } // each()
-                                    render "uploaded: ${map.files('pdf').size()} file(s)"
+                                    render "uploaded: ${files.size()} file(s)"
+                                    */
                                 }
                             }
                         })
