@@ -14,16 +14,9 @@ tasks:
       source ~/.bashrc
   - init: |
       sudo chmod +x gradlew
-      sudo mkdir -p public/uploads
-      sudo mkdir -p src/ratpack/public/uploads
-      sudo mkdir -p src/ratpack/public/generatedFiles
-      sudo mkdir -p src/ratpack/public/generatedFiles/createdFiles
-      sudo mkdir -p public/generatedFiles
-      sudo mkdir -p public/generatedFiles/createdFiles
-      sudo chmod 777 -R public/uploads
-      sudo chmod 777 -R public/generatedFiles
-      sudo chmod 777 -R public/generatedFiles/createdFiles
-      git clone https://github.com/bitsnaps/logicaldoc-ce.git logicaldoc
+      sudo chmod +x create-directories.sh
+      ./create-directories.sh
+      git clone --depth 1 --branch 8.6.1 https://github.com/logicaldoc/logicaldoc-ce.git logicaldoc
       cd logicaldoc
       docker-compose up --no-start
       cd ..
