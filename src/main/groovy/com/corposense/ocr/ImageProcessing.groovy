@@ -8,20 +8,24 @@ import org.im4java.core.ConvertCmd
 import org.im4java.core.IM4JavaException
 import org.im4java.core.IMOperation
 import org.im4java.process.ProcessStarter
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import javax.imageio.ImageIO
+import java.awt.Image
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
 @CompileStatic
-class ImageProcessing {
+class  ImageProcessing {
 
     static final String IMAGE_MAGICK_PATH = System.getenv('MAGICK_HOME')
     static final double MINIMUM_DESKEW_THRESHOLD = 0.05d
-    private String imagePath
 
-    String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath().toString();
-    File dir = new File(dirPath)
+    final Logger log = LoggerFactory.getLogger(ImageProcessing)
+
+    String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath().toString()
+
 
     static {
         if (!new File(IMAGE_MAGICK_PATH).exists()){
@@ -38,37 +42,24 @@ class ImageProcessing {
     }
 
     @Inject
-    ImageProcessing(String imagePath){
-        this.imagePath = imagePath;
+    ImageProcessing(){
+
     }
 
     /*
      * Straightening a rotated image.
+     * TODO: Extract file extension
      */
-    String deskewImage(String inputImgPath , int num) throws IOException {
-        BufferedImage bi = ImageIO.read(new File(dirPath, inputImgPath))
+    String deskewImage(File inputImgPath , int num) throws IOException {
+        BufferedImage bi = ImageIO.read(inputImgPath)
         ImageDeskew id = new ImageDeskew(bi)
         double imageSkewAngle = id.skewAngle // determine skew angle
         if ((imageSkewAngle > MINIMUM_DESKEW_THRESHOLD || imageSkewAngle < -(MINIMUM_DESKEW_THRESHOLD))) {
             // deskew image
             bi = ImageHelper.rotateImage(bi, -imageSkewAngle)
         }
-        String straightenImgPath = "deskewImage_" + num + ".png";
+        String straightenImgPath = "deskewImage_" + num + ".png"
         ImageIO.write(bi, "png", new File(dirPath,straightenImgPath))
-        return straightenImgPath
-    }
-
-    // TODO: Seems to be duplicated!
-    String rotateImage(String inputImgPath , int num) throws IOException {
-        BufferedImage bi = ImageIO.read( new File(inputImgPath))
-        ImageDeskew id = new ImageDeskew(bi)
-        double imageSkewAngle = id.skewAngle // determine skew angle
-        if ((imageSkewAngle > MINIMUM_DESKEW_THRESHOLD || imageSkewAngle < -(MINIMUM_DESKEW_THRESHOLD))) {
-            // deskew image
-            bi = ImageHelper.rotateImage(bi, -imageSkewAngle)
-        }
-        String straightenImgPath = "deskewImage_" + num + ".png";
-        ImageIO.write(bi, "png", new File(dirPath, straightenImgPath))
         return straightenImgPath
     }
 
@@ -85,9 +76,13 @@ class ImageProcessing {
         ProcessStarter.setGlobalSearchPath(IMAGE_MAGICK_PATH)
         IMOperation op = new IMOperation()
         op.addImage()
-        op.density(300);
-        op.bordercolor("black").border(1).fuzz(0.95d).fill("white").draw("color 0,0 floodfill");
-        op.addImage();
+        op.density(300)
+        op.bordercolor("black")
+                .border(1)
+                .fuzz(0.95d)
+                .fill("white")
+                .draw("color 0,0 floodfill")
+        op.addImage()
         ConvertCmd cmd = new ConvertCmd()
         BufferedImage image =  ImageIO.read(new File(dirPath,inputImage))
         String outFile = "./borderRemoved_" + num + ".png"
@@ -123,11 +118,11 @@ class ImageProcessing {
         op.addImage()
 
         // execute the operation
-        ConvertCmd cmd = new ConvertCmd();
-        BufferedImage img =  ImageIO.read(new File(dirPath,deskew));
-        String outfile = "./binaryInverseImg_" + num + ".png";
+        ConvertCmd cmd = new ConvertCmd()
+        BufferedImage img =  ImageIO.read(new File(dirPath,deskew))
+        String outfile = "./binaryInverseImg_" + num + ".png"
         String file = new File(dirPath,outfile).toString()
-        cmd.run(op, img, file);
+        cmd.run(op, img, file)
         return outfile
     }
 
@@ -160,4 +155,28 @@ class ImageProcessing {
         cmd.run(op, img1, img2, file)
         return outputFile
     }
+
+    File resizeImage(File originalImageFile, int num) throws IOException {
+        File processedImg
+        BufferedImage img = ImageIO.read(originalImageFile)
+        log.info("width: ${img.width} x height: ${img.height}")
+//        if(img.getWidth()< 210 && img.getHeight()< 297){
+        if(img.getWidth()< 250 && img.getHeight()< 350){
+            String resizedImageName = "resizedImage_" + num + ".png"
+            processedImg = new File(dirPath, resizedImageName)
+            int targetWidth = img.getWidth()*2
+            int targetHeight = img.getHeight()*2
+            Image resultingImage = img.getScaledInstance(targetWidth, targetHeight, Image.SCALE_SMOOTH)
+            BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB)
+            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null)
+            ImageIO.write(outputImage, "png", processedImg)
+        }else{
+            String originalImageName = "originalImage_" + num + ".png"
+            processedImg = new File(dirPath, originalImageName)
+            ImageIO.write(img,"png",processedImg)
+        }
+
+        return processedImg
+    }
+
 }
