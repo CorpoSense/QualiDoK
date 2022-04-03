@@ -2,10 +2,8 @@ image:
   file: .gitpod.Dockerfile
 
 ports:
-  - port: 3306 # mysql
-    onOpen: ignore
   - port: 8080 # LogicalDOC CE
-    onOpen: ignore
+    onOpen: open-preview
   - port: 3000 # QualiDoK
     onOpen: open-browser
 
@@ -16,8 +14,10 @@ tasks:
       sudo chmod +x gradlew
       sudo chmod +x create-directories.sh
       ./create-directories.sh
-      git clone --depth 1 --branch 8.6.1 https://github.com/logicaldoc/logicaldoc-ce.git logicaldoc
+      git clone --depth 1 https://github.com/logicaldoc/logicaldoc-ce.git logicaldoc
       cd logicaldoc
+      git checkout 8.6.1
+      echo "you should run /setup to configure LogicalDOC"
       docker-compose up --no-start
       cd ..
     command: |
