@@ -1,13 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="description" content="QualiDoK, document management system file.">
-    <meta name="author" content="CorpoSense">
-    <title>QualiDoK - Upload</title>
-    <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
-    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <head th:replace="partials/head" />
 </head>
 <body>
 <div th:replace="partials/header" />
@@ -25,16 +19,18 @@
         </div>
     </div><!-- .row -->
 
-
     <div class="row">
-
         <div class="col-md-6">
             <h2>Upload a document</h2>
             <!-- Upload Form -->
-            <form action="upload" method="post" class="form-vertical" role="form" enctype="multipart/form-data">
+            <form id="doc-upload" action="upload" method="post" class="form-vertical" role="form" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label class="control-label" for="pdf">Select a PDF:</label>
+                    <label class="control-label" for="pdf">Select a document:</label>
                     <input type="file" name="pdf" id="pdf" multiple="multiple" class="form-control">
+                    <div id="loading" style="display: none;">
+                        <img th:src="@{/assets/images/loading.gif}" />
+                        <p>Processing document... (please wait)</p>
+                    </div>
                 </div>
                 <div class="form-group pull-right">
                     <input type="submit" class="btn btn-primary" value="Upload">

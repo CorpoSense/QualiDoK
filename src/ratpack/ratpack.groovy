@@ -123,7 +123,7 @@ ratpack {
         } // list
 
         get('preview'){
-            render('preview')
+            render(view('preview'))
         }
 
         prefix('upload') {
@@ -142,8 +142,10 @@ ratpack {
                                 parse(Form).then { Form map ->
                                     List<UploadedFile> files = map.files('pdf')
                                     log.info("Detected: ${files.size()} document(s).")
+
                                     if (files.size() == 0){
                                         render(view('preview', ['message': "No file uploaded!"]))
+
                                     } else if (files.size() == 1){
                                         // Single document upload
                                         UploadedFile uploadedFile = files.first()
@@ -157,15 +159,18 @@ ratpack {
                                         uploadedFile.writeTo(inputFile.newOutputStream())
                                         log.info("File type: ${fileType}")
                                         // TODO: support doc, docx document
-//                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){
+//                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
                                         if (fileType.contains('pdf')){
-                                            // Handle PDF document
+                                            // Handle PDF document...
                                             render(view('preview', ['message':'This is a PDF document']))
                                         } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                             // Handle image document
                                             String fullText = imageConverter.produceText(inputFile.path)
-                                            log.info("Extracted text: ${fullText}")
-                                            render(view('preview', ['message':'This is an image', 'fullText': fullText]))
+                                            render(view('preview', [
+                                                    'message':'Output document',
+                                                    'inputImage': inputFile.name,
+                                                    'fullText': fullText
+                                            ]))
                                         } else {
                                             // Handle other type of documents
                                             render(view('preview', ['message':'This file type is not currently supported.']))
@@ -248,7 +253,7 @@ ratpack {
             } // all
         }
 
-        // Serve assets from 'public'
-        files { dir "static" }
+        // Serve assets files
+        files { dir "public" }
     }
 }

@@ -34,7 +34,7 @@ class ImageConverter {
         String imageNBorder = image.removeBorder(imageDeskew,1)
         log.info('Binary inversion...')
         String binaryInv = image.binaryInverse(imageNBorder, 1)
-        log.info('Generating final image...')
+        log.info('Generating output image...')
         String finalImage = image.imageTransparent(imageNBorder,binaryInv, 1)
         String textOnlyFileName = 'textonly_pdf_'
         // configfileValue = 0->make the image visible, =1->make the image invisible

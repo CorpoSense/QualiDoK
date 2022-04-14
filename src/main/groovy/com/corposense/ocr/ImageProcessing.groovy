@@ -170,7 +170,7 @@ class  ImageProcessing {
             BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB)
             outputImage.getGraphics().drawImage(resultingImage, 0, 0, null)
             ImageIO.write(outputImage, "png", processedImg)
-        }else{
+        } else {
             String originalImageName = "originalImage_" + num + ".png"
             processedImg = new File(dirPath, originalImageName)
             ImageIO.write(img,"png",processedImg)

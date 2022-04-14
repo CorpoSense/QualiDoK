@@ -1,13 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="description" content="QualiDoK, document management system file.">
-    <meta name="author" content="CorpoSense">
-    <title>QualiDoK - Preview</title>
-    <link rel="shortcut icon" th:href="@{/favicon.ico}" type="image/x-icon">
-    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+    <head th:replace="partials/head" />
 </head>
 <body>
 <div th:replace="partials/header" />
@@ -16,23 +10,49 @@
 
     <div class="row">
         <div class="col-md-12">
-            <h2>Preview</h2>
 
-            <div th:if="${message}!=''">
-                <p th:text="${message}"></p>
-            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2>Preview</h2>
+                    <div th:if="${message}!=''">
+                        <p th:text="${message}"></p>
+                    </div>
+                </div>
+            </div><!-- .row -->
+
+            <div class="row">
+                <div class="col-md-6">
+
+                    <div id="ocr" th:if="${fullText} != null">
+
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="#preview-output" data-toggle="tab">Output text</a>
+                            </li>
+                        </ul>
+
+                        <div th:text="${fullText}"></div>
+
+                    </div>
 
 
-            <div align="left" style="width: 50%;float: left;">
-<!--                <embed th:src="${fullpath2}" type="application/pdf" width="100%" height="500px" />-->
-            </div>
-            <div align="right" style="width: 50%;float: right;">
-<!--                <embed th:src="${fullpath}" type="application/pdf" width="100%" height="500px" />-->
-            </div>
 
-            <div id="ocr" th:if="${fullText} != null">
-                <p th:text="${fullText}"></p>
-            </div>
+                </div><!-- .col-md-6 -->
+                <div class="col-md-6">
+                    <!--<div align="left" style="width: 100%;">-->
+                    <!-- <embed th:src="${fullpath2}" type="application/pdf" width="100%" height="500px" />-->
+                    <!--</div>-->
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="#preview-document" data-toggle="tab">Original Document</a>
+                            </li>
+                        </ul>
+                        <img class="img-responsive" th:src="${'/uploads/'+inputImage}" alt="output" width="100%" />
+                        <!--<p>file name:</p>-->
+                        <!--<img class="img-responsive" th:src="${inputImage}" alt="output" width="100%" />-->
+                        <!--  <embed th:src="${fullpath}" type="application/pdf" width="100%" height="500px" />-->
+                </div><!-- .col-md-6 -->
+            </div><!-- .row -->
 
         </div><!-- .col-md-12 -->
     </div><!-- .row -->
