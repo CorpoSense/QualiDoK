@@ -63,5 +63,13 @@
 
 <div th:replace="partials/footer" />
 
+<script type="text/javascript">
+$(function(){
+    $('#doc-upload').on('submit', function(){
+        console.log('Processing...');
+        $('#loading').show();
+    });
+});
+</script>
 </body>
 </html>

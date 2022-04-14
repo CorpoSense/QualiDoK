@@ -167,7 +167,7 @@ ratpack {
                                             // Handle image document
                                             String fullText = imageConverter.produceText(inputFile.path)
                                             render(view('preview', [
-                                                    'message':'Output document',
+                                                    'message':'Image processed successfully.',
                                                     'inputImage': inputFile.name,
                                                     'fullText': fullText
                                             ]))

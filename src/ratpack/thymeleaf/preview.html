@@ -2,6 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <head th:replace="partials/head" />
+    <link rel="stylesheet" th:href="@{/assets/css/font-awesome.min.css}" />
+    <link rel="stylesheet" th:href="@{/assets/css/summernote.min.css}" />
 </head>
 <body>
 <div th:replace="partials/header" />
@@ -31,7 +33,11 @@
                             </li>
                         </ul>
 
-                        <div th:text="${fullText}"></div>
+                        <div id="tab-content" class="tab-content">
+                            <div class="tab-pane in fade active" id="preview-output">
+                                <div class="summernote" th:text="${fullText}"></div>
+                            </div>
+                        </div>
 
                     </div>
 
@@ -60,6 +66,15 @@
 </div><!-- #page-content -->
 
 <div th:replace="partials/footer" />
-
+<script type="text/javascript" th:src="@{/assets/js/summernote.min.js}"></script>
+<script type="text/javascript">
+$(function(){
+    $('.summernote').summernote({
+        height: 300,
+        tabsize: 2,
+        airMode: true
+    });
+});
+</script>
 </body>
 </html>
