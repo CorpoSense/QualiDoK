@@ -1,6 +1,7 @@
 FROM gitpod/workspace-full
 
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+ENV IMAGE_MAGICK_PATH=/usr/bin/
 
 USER root
 
