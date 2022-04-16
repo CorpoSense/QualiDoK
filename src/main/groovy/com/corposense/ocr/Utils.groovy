@@ -1,5 +1,8 @@
-package com.corposense.ocr;
+package com.corposense.ocr
 
+import groovy.transform.CompileStatic;
+
+@CompileStatic
 class Utils {
     static String getOsName(){
         //by using ROOT we don't need to specify the language/country.

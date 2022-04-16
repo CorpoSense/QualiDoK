@@ -2,20 +2,26 @@ package com.corposense.ocr
 
 import com.google.inject.Inject
 import com.itextpdf.text.DocumentException
+import groovy.transform.CompileStatic
 import net.sourceforge.tess4j.ITesseract
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 import org.im4java.core.IM4JavaException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.nio.file.Path
 import java.nio.file.Paths
 
+@CompileStatic
 class SearchableImagePdf {
+
+    final Logger log = LoggerFactory.getLogger(SearchableImagePdf)
 
     final static String CONFIG_FILE_VALUE = "0"
 
-    String inputFile, outputFile, configFileValue;
-
+    String inputFile, outputFile, configFileValue
+//    Path dirPath = Paths.get("generatedFiles/createdFiles")
     Path dirPath = Paths.get("public/generatedFiles/createdFiles")
     File dir = new File(dirPath.toAbsolutePath().toString())
 
@@ -26,6 +32,11 @@ class SearchableImagePdf {
         this.configFileValue = configFileValue
     }
 
+    /**
+     * Generate a searchable PDF from given image
+     * @param imagePath
+     * @param number
+     */
     void textOnlyPdf(String imagePath , int number){
         List<ITesseract.RenderedFormat> formats = new ArrayList<ITesseract.RenderedFormat>(Arrays.asList(ITesseract.RenderedFormat.PDF))
         try {
@@ -36,10 +47,12 @@ class SearchableImagePdf {
             instance.setDatapath(System.getenv("TESSDATA_PREFIX"))
             // set the English+Arabic+French languages (need to be modified in order to support other language
             instance.setLanguage("ara+eng+fra")
+            // TODO: replace hardcoded strings with variable name
             instance.setTessVariable("textonly_pdf_", configFileValue)
             String img = new File(dir, imagePath).toString()
             String outputFile = new File(dir, outputFile).toString()
             instance.createDocuments([img] as String[], [outputFile+number] as String[], formats)
+            log.info("Output file path: ${outputFile}")
         } catch (TesseractException te){
             ("Error TE (${te.getClass().simpleName}): ${te.message}")
         }
@@ -50,8 +63,9 @@ class SearchableImagePdf {
             IM4JavaException, DocumentException {
 
         for (int i = 1; i <= pageNum; i++) {
-            String extractedImgName = "ExtractedImage_" + i + ".png"
-            ImageProcessing image = new ImageProcessing(extractedImgName)
+            File extractedImgName = new File("ExtractedImage_" + i + ".png")
+//            ImageProcessing image = new ImageProcessing(extractedImgName)
+            ImageProcessing image = new ImageProcessing()
             String imageDeskew = image.deskewImage(extractedImgName, i)
             String imageNBorder = image.removeBorder(imageDeskew,i)
             String binaryInv = image.binaryInverse(imageNBorder, i)
@@ -67,7 +81,7 @@ class SearchableImagePdf {
     }
 
     /**
-     * This may comes handy when trying to detect if PDF is searchable
+     * TODO: This may comes handy when trying to detect if PDF is searchable
      * @param inputFile
      * @throws IOException
      *

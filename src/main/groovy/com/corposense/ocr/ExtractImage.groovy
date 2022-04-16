@@ -1,6 +1,7 @@
 package com.corposense.ocr
 
 import com.google.inject.Inject
+import groovy.transform.CompileStatic
 import org.apache.pdfbox.contentstream.PDFStreamEngine
 import org.apache.pdfbox.contentstream.operator.Operator
 import org.apache.pdfbox.cos.COSBase
@@ -15,6 +16,7 @@ import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
 import java.nio.file.Paths
 
+@CompileStatic
 class ExtractImage extends PDFStreamEngine{
 
     String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath()

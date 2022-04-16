@@ -18,31 +18,37 @@ class ImageConverter {
     /**
      * Create a searchable PDF containing only text
      * @param inputFile
-     * @return
+     * @return Output file name
      * @throws IOException
      * @throws InterruptedException
      * @throws IM4JavaException
      */
-    String createTextOnlyPdf(String inputFile) throws IOException, InterruptedException, IM4JavaException {
+    String produceTextOnlyPdf(String inputFile, int visibleImageLayer = 0) throws IOException, InterruptedException, IM4JavaException {
+        int num = 1
         ImageProcessing image = new ImageProcessing()
         File uploadedImg = new File(inputFile)
         log.info('Image resizing...')
-        File imageResize = image.resizeImage(uploadedImg,1 )
+        File imageResize = image.resizeImage(uploadedImg,num )
         log.info('Image deskew...')
-        String imageDeskew = image.deskewImage(imageResize, 1)
+        String imageDeskew = image.deskewImage(imageResize, num)
         log.info('Removing borders...')
-        String imageNBorder = image.removeBorder(imageDeskew,1)
+        String imageNBorder = image.removeBorder(imageDeskew,num)
         log.info('Binary inversion...')
-        String binaryInv = image.binaryInverse(imageNBorder, 1)
+        String binaryInv = image.binaryInverse(imageNBorder, num)
         log.info('Generating output image...')
-        String finalImage = image.imageTransparent(imageNBorder,binaryInv, 1)
+        String finalImage = image.imageTransparent(imageNBorder, binaryInv, num)
         String textOnlyFileName = 'textonly_pdf_'
-        // configfileValue = 0->make the image visible, =1->make the image invisible
+        // configFileValue = 0->make the image visible, =1->make the image invisible
         SearchableImagePdf createPdf = new SearchableImagePdf(finalImage,
-                textOnlyFileName, "0")
-        createPdf.textOnlyPdf(finalImage, 1)
-        println("getting the size and the location of the image from ${textOnlyFileName}")
-        return imageNBorder
+                textOnlyFileName, "${visibleImageLayer}")
+        createPdf.textOnlyPdf(finalImage, num)
+        String outputFileName = "generatedFiles/createdFiles/${textOnlyFileName}${num}.pdf"
+        if (new File(outputFileName).exists()){
+            log.info("getting the size and the location of the image from ${outputFileName}")
+        } else {
+            log.info("Wrong path of: ${outputFileName}")
+        }
+        return outputFileName
     }
 
     /**

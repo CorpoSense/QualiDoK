@@ -26,11 +26,18 @@
             <form id="doc-upload" action="upload" method="post" class="form-vertical" role="form" enctype="multipart/form-data">
                 <div class="form-group">
                     <label class="control-label" for="pdf">Select a document:</label>
-                    <input type="file" name="pdf" id="pdf" multiple="multiple" class="form-control">
-                    <div id="loading" style="display: none;">
-                        <img th:src="@{/assets/images/loading.gif}" />
-                        <p>Processing document... (please wait)</p>
-                    </div>
+                    <input type="file" name="input-doc" id="input-doc" multiple="multiple" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <select id="type-ocr" name="type-ocr" class="form-control">
+                        <option value="extract-text">Extract text (Manuel)</option>
+                        <option value="produce-pdf">Create a PDF (Auto)</option>
+                    </select>
+                </div>
+                <div id="loading" style="display: none;">
+                    <img th:src="@{/assets/images/loading.gif}" />
+                    <p>Processing document... (please wait)</p>
                 </div>
                 <div class="form-group pull-right">
                     <input type="submit" class="btn btn-primary" value="Upload">
@@ -54,8 +61,7 @@
                     <option value="ar">Arabic</option>
                 </select>
             </div>
-        </div>
-
+        </div><!-- .col-md-6 -->
 
     </div><!-- .row -->
 

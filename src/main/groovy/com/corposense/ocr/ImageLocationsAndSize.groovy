@@ -6,6 +6,7 @@ import com.itextpdf.text.Image
 import com.itextpdf.text.pdf.PdfContentByte
 import com.itextpdf.text.pdf.PdfReader
 import com.itextpdf.text.pdf.PdfStamper
+import groovy.transform.CompileStatic
 import org.apache.pdfbox.contentstream.PDFStreamEngine
 import org.apache.pdfbox.contentstream.operator.DrawObject
 import org.apache.pdfbox.contentstream.operator.Operator
@@ -25,6 +26,7 @@ import org.apache.pdfbox.util.Matrix
 
 import java.nio.file.Paths
 
+@CompileStatic
 class ImageLocationsAndSize extends PDFStreamEngine {
 
     private float imageYPosition, imageXPosition, imageXScale, imageYScale;
@@ -77,7 +79,15 @@ class ImageLocationsAndSize extends PDFStreamEngine {
 
     }
 
-    //Place image on existing pdf.
+    /**
+     * Place an image on existing pdf.
+     * @param inputFilePath
+     * @param outputFilePath
+     * @param imgPath
+     * @return Output file path
+     * @throws DocumentException
+     * @throws IOException
+     */
     String placeImageOnExistingPdf(String inputFilePath, String outputFilePath, String imgPath )
             throws DocumentException, IOException {
         String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath().toString()
@@ -115,6 +125,15 @@ class ImageLocationsAndSize extends PDFStreamEngine {
         return filePath
     }
 
+    /**
+     * Generate PDF from an an input image
+     * @param existingPdfFilePath
+     * @param outputFilePath
+     * @param imageNBorder
+     * @return Output file path
+     * @throws IOException
+     * @throws DocumentException
+     */
     static String createPdfWithOriginalImage(String existingPdfFilePath, String outputFilePath, String imageNBorder)
             throws IOException, DocumentException {
         PDDocument document = null;

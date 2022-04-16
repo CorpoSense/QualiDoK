@@ -1,11 +1,13 @@
 package com.corposense.ocr
 
 import com.google.inject.Inject
+import groovy.transform.CompileStatic
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 
 import java.nio.file.Paths
 
+@CompileStatic
 class ImageText extends Tesseract {
 
 

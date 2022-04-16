@@ -43,12 +43,15 @@ class  ImageProcessing {
 
     @Inject
     ImageProcessing(){
-
     }
 
-    /*
-     * Straightening a rotated image.
-     * TODO: Extract file extension
+    /**
+     * Deskew image (Straightening a rotated image)
+     * @param inputImgPath
+     * @param num
+     * @return
+     * @throws IOException
+     * TODO: Extract the hardcoded file extension
      */
     String deskewImage(File inputImgPath , int num) throws IOException {
         BufferedImage bi = ImageIO.read(inputImgPath)
@@ -64,13 +67,14 @@ class  ImageProcessing {
     }
 
     /**
-     * Get rid of a black border around image.
+     * Get rid of a black border around the image.
      * @param inputImage
      * @param num
-     * @return
+     * @return Output file name
      * @throws IOException
      * @throws InterruptedException
      * @throws IM4JavaException
+     * TODO: Extract the hardcoded file extension
      */
     String removeBorder(String inputImage , int num) throws IOException, InterruptedException, IM4JavaException {
         ProcessStarter.setGlobalSearchPath(IMAGE_MAGICK_PATH)
@@ -91,15 +95,23 @@ class  ImageProcessing {
         return outFile
     }
 
-    /*
-      In this step we make the text white and background black.
-      monochrome: converts a multicolored image (RGB), to a black and white image.
-      negate: Replace each pixel with its complementary color (White becomes black).
-      Use .fill white .fuzz 11% p_opaque "#000000" to fill the text with white (so we can see most
-      of the original image)
-      Apply a light .blur (1d,1d) to the image.
+    /**
+     * Binary image inversion
+     *  Make the text white and the background black.
+     *       monochrome: converts a multicolored image (RGB), to a black and white image.
+     *       negate: Replace each pixel with its complementary color (White becomes black).
+     *       Use .fill white .fuzz 11% p_opaque "#000000" to fill the text with white (so we can see most
+     *       of the original image)
+     *       Apply a light .blur (1d,1d) to the image.
+     * @param deskewImageFileName
+     * @param num
+     * @return Output file name
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws IM4JavaException
+     * TODO: Extract the hardcoded file extension
      */
-    String binaryInverse(String deskew , int num) throws IOException,
+    String binaryInverse(String deskewImageFileName , int num) throws IOException,
             InterruptedException,
             IM4JavaException {
 
@@ -119,7 +131,7 @@ class  ImageProcessing {
 
         // execute the operation
         ConvertCmd cmd = new ConvertCmd()
-        BufferedImage img =  ImageIO.read(new File(dirPath,deskew))
+        BufferedImage img =  ImageIO.read(new File(dirPath, deskewImageFileName))
         String outfile = "./binaryInverseImg_" + num + ".png"
         String file = new File(dirPath,outfile).toString()
         cmd.run(op, img, file)
@@ -127,17 +139,18 @@ class  ImageProcessing {
     }
 
     /**
-     * Make every thing in black becoming transparent.
-     * we simply combine the original image with binaryInverseImg (the black and white version).
+     * Convert black to transparent.
+     * Combine the original image with binaryInverseImg (the black and white version).
      * @param originalImgPath
      * @param nbackgroundImgPath
      * @param num
-     * @return The output file name
+     * @return Output file name
      * @throws IOException
      * @throws InterruptedException
      * @throws IM4JavaException
+     * TODO: Extract the hardcoded file extension
      */
-    String imageTransparent(String originalImgPath, String nbackgroundImgPath, int num)
+    String imageTransparent(String originalImgPath, String nBackgroundImgPath, int num)
             throws IOException, InterruptedException, IM4JavaException {
         ProcessStarter.setGlobalSearchPath(IMAGE_MAGICK_PATH)
         IMOperation op = new IMOperation()
@@ -149,19 +162,27 @@ class  ImageProcessing {
         op.addImage()
         ConvertCmd cmd = new ConvertCmd()
         BufferedImage img1 =  ImageIO.read(new File(dirPath, originalImgPath))
-        BufferedImage img2 =  ImageIO.read(new File(dirPath, nbackgroundImgPath))
+        BufferedImage img2 =  ImageIO.read(new File(dirPath, nBackgroundImgPath))
         String outputFile = "./transparentImg_" + num + ".png"
         String file = new File(dirPath, outputFile).toString()
         cmd.run(op, img1, img2, file)
         return outputFile
     }
 
-    File resizeImage(File originalImageFile, int num) throws IOException {
+    /**
+     * Resize an image if smaller than minWidth X minHeight
+     * @param originalImageFile
+     * @param num
+     * @return Output image file
+     * @throws IOException
+     * TODO: Extract the hardcoded file extension
+     */
+    File resizeImage(File originalImageFile, int num, int minWidth = 250, int minHeight = 350 ) throws IOException {
         File processedImg
         BufferedImage img = ImageIO.read(originalImageFile)
         log.info("width: ${img.width} x height: ${img.height}")
 //        if(img.getWidth()< 210 && img.getHeight()< 297){
-        if(img.getWidth()< 250 && img.getHeight()< 350){
+        if(img.getWidth()< minWidth && img.getHeight()< minHeight){
             String resizedImageName = "resizedImage_" + num + ".png"
             processedImg = new File(dirPath, resizedImageName)
             int targetWidth = img.getWidth()*2
@@ -175,7 +196,6 @@ class  ImageProcessing {
             processedImg = new File(dirPath, originalImageName)
             ImageIO.write(img,"png",processedImg)
         }
-
         return processedImg
     }
 

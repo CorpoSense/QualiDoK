@@ -9,10 +9,12 @@ import com.itextpdf.text.FontFactory
 import com.itextpdf.text.PageSize
 import com.itextpdf.text.Paragraph
 import com.itextpdf.text.pdf.PdfWriter
+import groovy.transform.CompileStatic
 import org.im4java.core.IM4JavaException
 
 import java.nio.file.Paths
 
+@CompileStatic
 class TextPdf {
 
     final String fullText
@@ -59,8 +61,9 @@ class TextPdf {
     static void createTextOverlay(int pageNum) throws DocumentException,
             IOException, InterruptedException, IM4JavaException {
         for( int i = 1 ; i <= pageNum; i++){
-            String extractedImgName = "ExtractedImage_" + i + ".png"
-            ImageProcessing image = new ImageProcessing(extractedImgName)
+            File extractedImgName = new File("ExtractedImage_" + i + ".png")
+//            ImageProcessing image = new ImageProcessing(extractedImgName)
+            ImageProcessing image = new ImageProcessing()
             String imageDeskew = image.deskewImage(extractedImgName, i)
             String imageNBorder = image.removeBorder(imageDeskew,i)
             String binaryInv = image.binaryInverse(imageNBorder, i)

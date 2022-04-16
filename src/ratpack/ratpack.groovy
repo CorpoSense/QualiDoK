@@ -139,8 +139,8 @@ ratpack {
                             if (accounts.isEmpty() || !account){
                                 render(view('upload', [message:'You must create a server account.']))
                             } else {
-                                parse(Form).then { Form map ->
-                                    List<UploadedFile> files = map.files('pdf')
+                                parse(Form).then { Form form ->
+                                    List<UploadedFile> files = form.files('input-doc')
                                     log.info("Detected: ${files.size()} document(s).")
 
                                     if (files.size() == 0){
@@ -150,31 +150,75 @@ ratpack {
                                         // Single document upload
                                         UploadedFile uploadedFile = files.first()
                                         String fileType = uploadedFile.contentType.type
+
                                         if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
                                             // TODO: may need to back to /upload page
                                             render(view('preview', ['message':'This type of file is not supported.']))
                                             return
                                         }
-                                        File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                        uploadedFile.writeTo(inputFile.newOutputStream())
-                                        log.info("File type: ${fileType}")
-                                        // TODO: support doc, docx document
+                                        String typeOcr = form.get('type-ocr')
+                                        log.info("Type of processing: ${typeOcr}")
+                                        switch (typeOcr){
+                                            case 'extract-text':
+
+                                                File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                                uploadedFile.writeTo(inputFile.newOutputStream())
+                                                log.info("File type: ${fileType}")
+                                                // TODO: support doc, docx document
 //                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
-                                        if (fileType.contains('pdf')){
-                                            // Handle PDF document...
-                                            render(view('preview', ['message':'This is a PDF document']))
-                                        } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
-                                            // Handle image document
-                                            String fullText = imageConverter.produceText(inputFile.path)
-                                            render(view('preview', [
-                                                    'message':'Image processed successfully.',
-                                                    'inputImage': inputFile.name,
-                                                    'fullText': fullText
-                                            ]))
-                                        } else {
-                                            // Handle other type of documents
-                                            render(view('preview', ['message':'This file type is not currently supported.']))
+                                                if (fileType.contains('pdf')){
+                                                    // Handle PDF document...
+                                                    render(view('preview', ['message':'This is a PDF document']))
+                                                } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
+                                                    // Handle image document
+                                                    String fullText = imageConverter.produceText(inputFile.path)
+                                                    render(view('preview', [
+                                                            'message':'Image processed successfully.',
+                                                            'inputImage': inputFile.name,
+                                                            'fullText': fullText
+                                                    ]))
+                                                } else {
+                                                    // Handle other type of documents
+                                                    render(view('preview', ['message':'This file type is not currently supported.']))
+                                                }
+
+
+                                                break;
+                                            case 'produce-pdf':
+
+                                                File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                                uploadedFile.writeTo(inputFile.newOutputStream())
+                                                log.info("File type: ${fileType}")
+                                                // TODO: support doc, docx document
+//                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
+                                                if (fileType.contains('pdf')){
+                                                    // Handle PDF document...
+                                                    render(view('preview', ['message':'This is a PDF document']))
+                                                } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
+                                                    // Handle image document
+                                                    String outputFile = imageConverter.produceTextOnlyPdf(inputFile.path, 0)
+                                                    if (new File(outputFile).exists()){
+                                                        log.info("Found at: ${outputFile}")
+                                                    } else {
+                                                        log.info("CANNOT FIND file: ${outputFile}")
+                                                    }
+                                                    render(view('preview', [
+                                                            'message':'Document generated successfully.',
+                                                            'inputImage': inputFile.name,
+                                                            'outputFile': outputFile
+                                                    ]))
+                                                } else {
+                                                    // Handle other type of documents
+                                                    render(view('preview', ['message':'This file type is not currently supported.']))
+                                                }
+
+
+                                                break;
+                                            default:
+                                                render('Error: Invalid option value.')
+                                                return
                                         }
+
 
                                     } else {
                                         render(view('preview', ['message': "${files.size()} document(s)"]))
