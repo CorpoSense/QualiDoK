@@ -22,7 +22,8 @@ import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.fromJson
-
+import com.github.pemistahl.lingua.api.*
+import static com.github.pemistahl.lingua.api.Language.*
 
 final Logger log = LoggerFactory.getLogger(ratpack)
 
@@ -91,6 +92,17 @@ ratpack {
 
         get { AccountService accountService, ImageConverter imageConverter ->
             accountService.getActive().then({ List<Account> accounts ->
+
+
+
+                LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, FRENCH, GERMAN, SPANISH).build()
+                Language detectedLanguage = detector.detectLanguageOf("languages are awesome")
+//                def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
+
+
+                log.info("detectedLanguage: ${detectedLanguage}")
+
+
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
