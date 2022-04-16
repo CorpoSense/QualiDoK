@@ -40,3 +40,5 @@ logicaldoc/
 
 # Code coverage
 out/
+.vscode/
+bin/
