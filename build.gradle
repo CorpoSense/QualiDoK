@@ -53,6 +53,10 @@ dependencies {
     implementation 'org.im4java:im4java:1.4.0'
     implementation 'org.apache.pdfbox:pdfbox:2.0.24'
 
+    // Natural language detection
+    implementation 'com.github.pemistahl:lingua:1.1.1'
+
+
     // The production code uses the SLF4J logging API at compile time
     runtime "org.slf4j:slf4j-api:${slf4jVersion}"
     runtime "org.slf4j:slf4j-simple:${slf4jVersion}"
