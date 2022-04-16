@@ -93,17 +93,6 @@ ratpack {
 
         get { AccountService accountService, ImageConverter imageConverter ->
             accountService.getActive().then({ List<Account> accounts ->
-
-
-
-                LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, FRENCH, GERMAN, SPANISH).build()
-                Language detectedLanguage = detector.detectLanguageOf("languages are awesome")
-//                def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
-
-
-                log.info("detectedLanguage: ${detectedLanguage}")
-
-
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
@@ -185,10 +174,16 @@ ratpack {
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document
                                                     String fullText = imageConverter.produceText(inputFile.path)
+                                                    LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
+                                                    Language detectedLanguage = detector.detectLanguageOf(fullText)
+//                def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
+                                                    log.info("detectedLanguage: ${detectedLanguage}")
+
                                                     render(view('preview', [
                                                             'message':'Image processed successfully.',
                                                             'inputImage': inputFile.name,
-                                                            'fullText': fullText
+                                                            'fullText': fullText,
+                                                            'detectedLanguage': detectedLanguage
                                                     ]))
                                                 } else {
                                                     // Handle other type of documents

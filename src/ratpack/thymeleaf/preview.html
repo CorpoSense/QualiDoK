@@ -44,7 +44,7 @@
 
                         <ul class="nav nav-tabs">
                             <li class="active">
-                                <a href="#preview-output" data-toggle="tab">Output text</a>
+                                <a th:else href="#preview-output" data-toggle="tab">Output text</a>
                             </li>
                         </ul>
 
@@ -52,6 +52,9 @@
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
                             </div>
+                        </div>
+                        <div class="alert alert-info" th:if="${detectedLanguage} != null">
+                            <p>Detected text: <strong th:text="${detectedLanguage}"></strong></p>
                         </div>
 
                         <div th:if="${outputFile} != null" class="tab-content">
