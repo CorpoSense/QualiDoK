@@ -25,6 +25,7 @@ class ImageConverter {
      */
     String produceTextOnlyPdf(String inputFile, int visibleImageLayer = 0) throws IOException, InterruptedException, IM4JavaException {
         int num = 1
+        // ImageProcessing image = new ImageProcessing(inputFile)
         ImageProcessing image = new ImageProcessing()
         File uploadedImg = new File(inputFile)
         log.info('Image resizing...')
@@ -61,6 +62,7 @@ class ImageConverter {
      * TODO: Need to apply a resize
      */
     String produceText(String inputFile) throws IOException, InterruptedException, IM4JavaException {
+        //ImageProcessing image = new ImageProcessing(inputFile)
         ImageProcessing image = new ImageProcessing()
         File uploadedImg = new File(inputFile)
         log.info('Image resizing...')

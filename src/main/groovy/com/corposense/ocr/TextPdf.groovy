@@ -62,7 +62,7 @@ class TextPdf {
             IOException, InterruptedException, IM4JavaException {
         for( int i = 1 ; i <= pageNum; i++){
             File extractedImgName = new File("ExtractedImage_" + i + ".png")
-//            ImageProcessing image = new ImageProcessing(extractedImgName)
+        //    ImageProcessing image = new ImageProcessing(extractedImgName.name)
             ImageProcessing image = new ImageProcessing()
             String imageDeskew = image.deskewImage(extractedImgName, i)
             String imageNBorder = image.removeBorder(imageDeskew,i)

@@ -25,6 +25,7 @@ class  ImageProcessing {
     final Logger log = LoggerFactory.getLogger(ImageProcessing)
 
     String dirPath = Paths.get("public/generatedFiles/createdFiles").toAbsolutePath().toString()
+    // String dirPath = Paths.get("generatedFiles/createdFiles").toAbsolutePath().toString()
 
 
     static {
