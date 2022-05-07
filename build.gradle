@@ -54,7 +54,7 @@ dependencies {
     implementation 'org.apache.pdfbox:pdfbox:2.0.24'
 
     // Natural language detection
-    implementation 'com.github.pemistahl:lingua:1.1.1'
+//    implementation 'com.github.pemistahl:lingua:1.1.1'
 
 
     // The production code uses the SLF4J logging API at compile time

@@ -71,9 +71,13 @@
 
 <script type="text/javascript">
 $(function(){
+    var loading = $('#loading');
     $('#doc-upload').on('submit', function(){
+        loading.show();
         console.log('Processing...');
-        $('#loading').show();
+        setTimeout(function(){
+            $(loading).append("You will be redirected...");
+        }, 5000);
     });
 });
 </script>

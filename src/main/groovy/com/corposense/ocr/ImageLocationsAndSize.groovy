@@ -50,8 +50,7 @@ class ImageLocationsAndSize extends PDFStreamEngine {
     void processOperator(Operator operator, List<COSBase> operands) throws IOException
     {
         String operation = operator.getName();
-        if( operation == 'Do')
-        {
+        if ( operation == 'Do')  {
             COSName objectName = (COSName) operands.get( 0 )
             // get the PDF object
             PDXObject xobject = getResources().getXObject( objectName );

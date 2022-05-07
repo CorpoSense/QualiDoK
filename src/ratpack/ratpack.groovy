@@ -1,8 +1,10 @@
 import com.corposense.ConnectionInitializer
+import com.corposense.Constants
 import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
 import com.corposense.ocr.ImageConverter
 import com.corposense.services.AccountService
+import com.corposense.services.ImageService
 import com.corposense.services.UploadService
 import com.zaxxer.hikari.HikariConfig
 import org.slf4j.Logger
@@ -22,8 +24,8 @@ import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.fromJson
-import com.github.pemistahl.lingua.api.*
-import static com.github.pemistahl.lingua.api.Language.*
+//import com.github.pemistahl.lingua.api.*
+//import static com.github.pemistahl.lingua.api.Language.*
 
 final Logger log = LoggerFactory.getLogger(ratpack)
 
@@ -32,18 +34,14 @@ final String[] SUPPORTED_DOCS = ['pdf', 'doc', 'docx']
 final String[] SUPPORTED_IMAGES = ['png', 'jpg', 'jpeg']
 final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
 
-def uploadDir = 'uploads'
-def publicDir = 'public'
-Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
-Path uploadPath = baseDir.resolve(uploadDir)
-
-String generatedFilesDir = "generatedFiles"
-String createdFilesDir = "createdFiles"
-Path baseGeneratedFilesDir = BaseDir.find("${publicDir}/${generatedFilesDir}")
-Path baseCreatedFilesDir = BaseDir.find("${publicDir}/${generatedFilesDir}/${createdFilesDir}")
-
-Path generatedFilesPath = baseGeneratedFilesDir.resolve(generatedFilesDir)
-Path createdFilesPath = baseCreatedFilesDir.resolve(createdFilesDir)
+/**
+ * public/uploads path (use resolve() from relative path instead of absolutePath, the last one will be start from root disk)
+ * It presents a full path on disk when running from Gradle, and relative path when running form a Jar file.
+ */
+String uploadDir = Constants.uploadDir
+String publicDir = Constants.publicDir
+String downloadsDir = Constants.downloadsDir
+Path uploadPath = Constants.uploadPath
 
 ratpack {
     serverConfig {
@@ -61,9 +59,11 @@ ratpack {
         bind (AccountService)
         bind (UploadService)
         bind(ImageConverter)
+        bind(ImageService)
         bindInstance (Service, new ConnectionInitializer())
 
         add Service.startup('startup'){ StartEvent event ->
+            // Temporary disabled
             if (serverConfig.development){
                 sleep(500)
                 event.registry.get(AccountService)
@@ -79,11 +79,18 @@ ratpack {
                 })
             }
 
-            new File("${publicDir}/${uploadDir}").with { File baseUpload ->
+            [
+                new File("${publicDir}/${uploadDir}"),
+                new File("${publicDir}/${downloadsDir}")
+            ].each { File baseUpload ->
                 if (!baseUpload.exists()){
                     if (baseUpload.mkdirs()){
                         log.info("Created directory: ${baseUpload.absolutePath}")
+                    } else {
+                        log.error("Cannot create directory: ${baseUpload.absolutePath}")
                     }
+                } else {
+                    log.info("Directory: ${baseUpload} already exists.")
                 }
             }
 
@@ -91,7 +98,32 @@ ratpack {
     }
     handlers {
 
-        get { AccountService accountService, ImageConverter imageConverter ->
+        get { AccountService accountService /*, ImageService imageService */ ->
+/*
+            String outputText = ''
+            File outputFile = null
+            File inputImage = new File("${uploadPath}",'text-tiny.jpg')
+            if (inputImage.exists()){
+                log.info("File: ${inputImage} exists, converting...")
+//                outputText = imageService.produceText(inputImage)
+//                log.info("OutputText: ${outputText}")
+                outputFile = imageService.producePdf(inputImage)
+            } else {
+                log.info("File ${inputImage} does not exists.")
+            }
+            if (outputFile.exists()){
+                render "File at: ${outputFile.path}"
+                return
+            }
+            render "Cannot find file at: ${outputFile.path}"
+*/
+
+/*            render """
+            baseDir: ${baseDir}, exists: ${new File(baseDir.toString()).exists()}
+            uploadPath: ${uploadPath}, exists: ${new File(uploadPath.toString()).exists()}
+            uploadPath: ${downloadsPath}, exists: ${new File(downloadsPath.toString()).exists()}
+            """
+            */
             accountService.getActive().then({ List<Account> accounts ->
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
@@ -100,6 +132,7 @@ ratpack {
                     render(view("index", ['account': account]))
                 }
             })
+
         }
 
         get('list') { HttpClient client, AccountService accountService ->
@@ -109,7 +142,7 @@ ratpack {
                     render(json([:]))
                 } else {
                     // List of documents
-                    def folderId = request.queryParams['folderId']?:FOLDER_ID
+                    def folderId = request.queryParams['folderId']?: FOLDER_ID
                     URI url = "${account.url}/logicaldoc/services/rest/folder/listChildren?folderId=${folderId}".toURI()
                     client.get(url) { RequestSpec reqSpec ->
                         reqSpec.basicAuth(account.username, account.password)
@@ -135,7 +168,7 @@ ratpack {
                     get {
                         render(view('upload'))
                     }
-                    post { UploadService uploadService, ImageConverter imageConverter ->
+                    post { UploadService uploadService, ImageService imageService ->
                         accountService.getActive().then({ List<Account> accounts ->
                             Account account = accounts[0]
                             if (accounts.isEmpty() || !account){
@@ -162,7 +195,6 @@ ratpack {
                                         log.info("Type of processing: ${typeOcr}")
                                         switch (typeOcr){
                                             case 'extract-text':
-
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
                                                 uploadedFile.writeTo(inputFile.newOutputStream())
                                                 log.info("File type: ${fileType}")
@@ -173,24 +205,28 @@ ratpack {
                                                     render(view('preview', ['message':'This is a PDF document']))
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document
-                                                    String fullText = imageConverter.produceText(inputFile.path)
-                                                    LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
-                                                    Language detectedLanguage = detector.detectLanguageOf(fullText)
-//                def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
-                                                    log.info("detectedLanguage: ${detectedLanguage}")
+                                                    String fullText = imageService.produceText(inputFile)
+//                                                    LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
+//                                                    Language detectedLanguage = detector.detectLanguageOf(fullText)
+//                                                    def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
+//                                                    log.info("detectedLanguage: ${detectedLanguage}")
+
+                                                    if (inputFile.exists()){
+                                                        log.info("File: ${inputFile} found.")
+                                                    } else {
+                                                        log.info("File: ${inputFile} NOT found.")
+                                                    }
 
                                                     render(view('preview', [
-                                                            'message':'Image processed successfully.',
+                                                            'message': (fullText? 'Image processed successfully.':'No output can be found.'),
                                                             'inputImage': inputFile.name,
                                                             'fullText': fullText,
-                                                            'detectedLanguage': detectedLanguage
+//                                                            'detectedLanguage': detectedLanguage
                                                     ]))
                                                 } else {
                                                     // Handle other type of documents
                                                     render(view('preview', ['message':'This file type is not currently supported.']))
                                                 }
-
-
                                                 break;
                                             case 'produce-pdf':
 
@@ -203,17 +239,12 @@ ratpack {
                                                     // Handle PDF document...
                                                     render(view('preview', ['message':'This is a PDF document']))
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
-                                                    // Handle image document
-                                                    String outputFile = imageConverter.produceTextOnlyPdf(inputFile.path, 0)
-                                                    if (new File(outputFile).exists()){
-                                                        log.info("Found at: ${outputFile}")
-                                                    } else {
-                                                        log.info("CANNOT FIND file: ${outputFile}")
-                                                    }
+                                                    // Handle image document (TODO: make visibleImageLayer dynamic)
+                                                    File outputFile = imageService.producePdf(inputFile, 1)
                                                     render(view('preview', [
                                                             'message':'Document generated successfully.',
                                                             'inputImage': inputFile.name,
-                                                            'outputFile': outputFile
+                                                            'outputFile': "${downloadsDir}/${outputFile.name}"
                                                     ]))
                                                 } else {
                                                     // Handle other type of documents
@@ -262,7 +293,6 @@ ratpack {
             }
         }
 
-
         prefix('server') {
 
             path("delete") { AccountService accountService ->
@@ -303,9 +333,10 @@ ratpack {
                     }
                 } // byMethod
             } // all
-        }
+        } // prefix('/server')
 
-        // Serve assets files
-        files { dir "public" }
+        // Serve public files (assets...)
+//        files { dir 'static' }
+        files { dir publicDir }
     }
 }

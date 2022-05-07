@@ -9,6 +9,7 @@ import net.sourceforge.tess4j.TesseractException
 import org.im4java.core.IM4JavaException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import ratpack.server.BaseDir
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -23,7 +24,13 @@ class SearchableImagePdf {
     String inputFile, outputFile, configFileValue
 //    Path dirPath = Paths.get("generatedFiles/createdFiles")
     Path dirPath = Paths.get("public/generatedFiles/createdFiles")
+//    Path dirPath = Paths.get("public/uploads/generatedFiles/createdFiles")
     File dir = new File(dirPath.toAbsolutePath().toString())
+
+//    static String uploadDir = 'uploads'
+//    static String publicDir = 'public'
+//    static Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
+//    static Path dirPath = baseDir.resolve('generatedFiles/createdFiles')
 
     @Inject
     SearchableImagePdf(String inputFile, String outputFile, String configFileValue){
@@ -50,11 +57,11 @@ class SearchableImagePdf {
             // TODO: replace hardcoded strings with variable name
             instance.setTessVariable("textonly_pdf_", configFileValue)
             String img = new File(dir, imagePath).toString()
-            String outputFile = new File(dir, outputFile).toString()
-            instance.createDocuments([img] as String[], [outputFile+number] as String[], formats)
-            log.info("Output file path: ${outputFile}")
+            String outputFileName = new File(dir, outputFile).toString()
+            instance.createDocuments([img] as String[], [outputFileName+number] as String[], formats)
+            log.info("Output file path: ${outputFileName}")
         } catch (TesseractException te){
-            ("Error TE (${te.getClass().simpleName}): ${te.message}")
+            log.error("Error TE (${te.getClass().simpleName}): ${te.message}")
         }
 
     }
