@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <head th:replace="partials/head" />
+</head>
+<body>
+<div th:replace="partials/header" />
+
+<div id="page-content" class="container">
+
+
+    <!-- List of Documents -->
+   
+            
+        <h1>Documents</h1>
+        <!-- <p th:text="${directories}"></p> -->
+        
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th> Id</th>
+                    <th>ParentId</th>
+                    <th> Name </th>
+                    <th>Last modified</th> 
+                    <th>Creator</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${directories.empty}">
+                    <td colspan="2"> No directories Available </td>
+                </tr>
+                <tr th:each="directory : ${directories}">
+                    <td><span th:text="${directory.id}"> Id </span></td>
+                    <td><span th:text="${directory.parentId}"> ParentId </span></td>
+                    <td><span th:text="${directory.name}"> Name </span></td>
+                    <td><span th:text="${directory.lastModified}"> Last modified </span></td>
+                    <td><span th:text="${directory.creator}"> Creator </span></td>
+                </tr>
+            </tbody>
+        </table>
+        
+</div><!-- #page-content -->
+
+<div th:replace="partials/footer" />
+
+</body>
+</html>

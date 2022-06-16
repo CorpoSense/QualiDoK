@@ -24,6 +24,8 @@ import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.fromJson
+import groovy.json.JsonSlurper
+import ratpack.file.MimeTypes
 //import com.github.pemistahl.lingua.api.*
 //import static com.github.pemistahl.lingua.api.Language.*
 
@@ -143,23 +145,40 @@ ratpack {
                 } else {
                     // List of documents
                     def folderId = request.queryParams['folderId']?: FOLDER_ID
-                    URI url = "${account.url}/logicaldoc/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                    URI url = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
                     client.get(url) { RequestSpec reqSpec ->
                         reqSpec.basicAuth(account.username, account.password)
                         reqSpec.headers.set ("Accept", 'application/json')
                     }.then { ReceivedResponse res ->
-                        res.forwardTo(response)
-                        // def directories = new groovy.json.JsonSlurper(res.body.text)
-                        // render(view('list', [directories: directories]))
+                        //JsonSlurper is a class that parses JSON 
+                        //text into Groovy data Structures such as string
+                        
+                        def jsonSlurper = new JsonSlurper()
+                        def directories = jsonSlurper.parseText(res.getBody().getText())
+                        
+                        render(view('list',['directories' : directories ]))
+                        
                     }
                 }
 
             })
         } // list
-
+       
         get('preview'){
             render(view('preview'))
         }
+       /* prefix('list'){
+            path('list'){
+                byMethod{
+                    get{
+                        render(view('list', [directories: 'directories']))
+                    }
+                    post{
+                        redirect('/list')
+                    }
+                }
+            }
+        }*/
 
         prefix('upload') {
             // path('/pdf'){}
