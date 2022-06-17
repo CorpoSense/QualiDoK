@@ -41,29 +41,29 @@ final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
 String uploadDir = Constants.uploadDir
 String publicDir = Constants.publicDir
 String downloadsDir = Constants.downloadsDir
+Path downloadPath = Constants.downloadPath
 Path uploadPath = Constants.uploadPath
 
 ratpack {
     serverConfig {
         development(true)
         port(3000)
-        maxContentLength(26214400)
+        maxContentLength(26214400)  // 25Mb
     }
     bindings {
-        module (ThymeleafModule)
-        module ( HikariModule, { HikariConfig config ->
+        module(ThymeleafModule)
+        module( HikariModule, { HikariConfig config ->
             config.addDataSourceProperty("URL", "jdbc:h2:mem:account;INIT=CREATE SCHEMA IF NOT EXISTS DEV")
             config.dataSourceClassName = "org.h2.jdbcx.JdbcDataSource"
         })
-        bind (H2ConnectionDataSource)
-        bind (AccountService)
-        bind (UploadService)
+        bind(H2ConnectionDataSource)
+        bind(AccountService)
+        bind(UploadService)
         bind(ImageConverter)
         bind(ImageService)
-        bindInstance (Service, new ConnectionInitializer())
+        bindInstance(Service, new ConnectionInitializer())
 
         add Service.startup('startup'){ StartEvent event ->
-            // Temporary disabled
             if (serverConfig.development){
                 sleep(500)
                 event.registry.get(AccountService)
@@ -161,6 +161,14 @@ ratpack {
             render(view('preview'))
         }
 
+        get("${uploadPath}/:imagePath"){
+            response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
+        }
+
+        get("${downloadPath}/:filePath"){
+            response.sendFile(new File("${downloadPath}","${pathTokens['filePath']}").toPath())
+        }
+
         prefix('upload') {
             // path('/pdf'){}
             all { AccountService accountService ->
@@ -211,15 +219,9 @@ ratpack {
 //                                                    def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
 //                                                    log.info("detectedLanguage: ${detectedLanguage}")
 
-                                                    if (inputFile.exists()){
-                                                        log.info("File: ${inputFile} found.")
-                                                    } else {
-                                                        log.info("File: ${inputFile} NOT found.")
-                                                    }
-
                                                     render(view('preview', [
                                                             'message': (fullText? 'Image processed successfully.':'No output can be found.'),
-                                                            'inputImage': inputFile.name,
+                                                            'inputImage': inputFile.path,
                                                             'fullText': fullText,
 //                                                            'detectedLanguage': detectedLanguage
                                                     ]))
@@ -243,8 +245,8 @@ ratpack {
                                                     File outputFile = imageService.producePdf(inputFile, 1)
                                                     render(view('preview', [
                                                             'message':'Document generated successfully.',
-                                                            'inputImage': inputFile.name,
-                                                            'outputFile': "${downloadsDir}/${outputFile.name}"
+                                                            'inputImage': inputFile.path,
+                                                            'outputFile': outputFile.path
                                                     ]))
                                                 } else {
                                                     // Handle other type of documents
@@ -291,7 +293,7 @@ ratpack {
                     }
                 }
             }
-        }
+        } //prefix: '/upload'
 
         prefix('server') {
 
