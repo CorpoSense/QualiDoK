@@ -242,7 +242,7 @@ ratpack {
                                                     render(view('preview', ['message':'This is a PDF document']))
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document (TODO: make visibleImageLayer dynamic)
-                                                    File outputFile = imageService.producePdf(inputFile, 1)
+                                                    File outputFile = imageService.producePdf(inputFile, 0)
                                                     render(view('preview', [
                                                             'message':'Document generated successfully.',
                                                             'inputImage': inputFile.path,
