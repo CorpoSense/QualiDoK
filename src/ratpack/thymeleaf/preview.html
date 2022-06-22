@@ -44,7 +44,7 @@
 
                         <ul class="nav nav-tabs">
                             <li class="active">
-                                <a th:else href="#preview-output" data-toggle="tab">Output text</a>
+                                <a th:else href="#preview-output" data-toggle="tab">Output</a>
                             </li>
                         </ul>
 
@@ -76,7 +76,7 @@
                                 <a href="#preview-document" data-toggle="tab">Original Document</a>
                             </li>
                         </ul>
-                        <img class="img-responsive" th:src="${'/uploads/'+inputImage}" alt="output" width="100%" />
+                        <img class="img-responsive" th:src="${inputImage}" alt="output" width="100%" />
                 </div><!-- .col-md-6 -->
             </div><!-- .row -->
 
