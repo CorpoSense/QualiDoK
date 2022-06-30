@@ -100,7 +100,7 @@ ratpack {
     }
     handlers {
 
-        get { AccountService accountService /*, ImageService imageService */ ->
+        get { AccountService accountService /*, ImageService imageService */, HttpClient client  ->
 /*
             String outputText = ''
             File outputFile = null
@@ -131,18 +131,6 @@ ratpack {
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
-                    render(view("index", ['account': account]))
-                }
-            })
-
-        }
-
-        get('list') { HttpClient client, AccountService accountService ->
-            accountService.getActive().then({ List<Account> accounts ->
-                Account account = accounts[0]
-                if (accounts.isEmpty() || !account){
-                    render(json([:]))
-                } else {
                     // List of documents
                     def folderId = request.queryParams['folderId']?: FOLDER_ID
                     URI url = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
@@ -150,35 +138,22 @@ ratpack {
                         reqSpec.basicAuth(account.username, account.password)
                         reqSpec.headers.set ("Accept", 'application/json')
                     }.then { ReceivedResponse res ->
-                        //JsonSlurper is a class that parses JSON 
-                        //text into Groovy data Structures such as string
-                        
-                        def jsonSlurper = new JsonSlurper()
-                        def directories = jsonSlurper.parseText(res.getBody().getText())
-                        
-                        render(view('list',['directories' : directories ]))
-                        
+
+                        JsonSlurper jsonSlurper = new JsonSlurper()
+                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                        render(view('index',['directories' : directories , 'account': account ]))
                     }
                 }
-
             })
-        } // list
+        }
+
+
        
         get('preview'){
             render(view('preview'))
         }
-       /* prefix('list'){
-            path('list'){
-                byMethod{
-                    get{
-                        render(view('list', [directories: 'directories']))
-                    }
-                    post{
-                        redirect('/list')
-                    }
-                }
-            }
-        }*/
+
 
         get("${uploadPath}/:imagePath"){
             response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
