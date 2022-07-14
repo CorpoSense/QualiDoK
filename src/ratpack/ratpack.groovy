@@ -7,15 +7,21 @@ import com.corposense.services.AccountService
 import com.corposense.services.ImageService
 import com.corposense.services.UploadService
 import com.zaxxer.hikari.HikariConfig
+import groovyx.net.http.HttpBuilder
+import groovyx.net.http.MultipartContent
+import groovyx.net.http.OkHttpBuilder
+import groovyx.net.http.OkHttpEncoders
+import okhttp3.Request
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 import ratpack.form.Form
 import ratpack.form.UploadedFile
 import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
-import ratpack.server.BaseDir
+
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
@@ -23,7 +29,7 @@ import java.nio.file.Path
 import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
-import static ratpack.jackson.Jackson.fromJson
+
 import groovy.json.JsonSlurper
 import ratpack.file.MimeTypes
 //import com.github.pemistahl.lingua.api.*
@@ -133,8 +139,8 @@ ratpack {
                 } else {
                     // List of documents
                     def folderId = request.queryParams['folderId']?: FOLDER_ID
-                    URI url = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                    client.get(url) { RequestSpec reqSpec ->
+                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                    client.get(uri) { RequestSpec reqSpec ->
                         reqSpec.basicAuth(account.username, account.password)
                         reqSpec.headers.set ("Accept", 'application/json')
                     }.then { ReceivedResponse res ->
@@ -146,6 +152,31 @@ ratpack {
                     }
                 }
             })
+            //uploadFile(File docFile, String server, Integer folderId = 4, String language)
+
+
+
+           /* HttpBuilder http = OkHttpBuilder.configure{
+                        request.uri = "http://0.0.0.0:8080/logicaldoc/services/rest/document/upload".toURI()//this.server.uri
+                        request.auth.basic 'admin', 'admin' //this.server.username, this.server.password
+                        //request.contentType = 'application/json'
+                    }.post {
+                        request.uri.path = '/logicaldoc/services/rest/document/upload'
+                        request.contentType = 'multipart/form-data'
+                        def docFile = new File("resources/IMG.JPG")
+                        request.body = MultipartContent.multipart {
+                            field 'folderId', "4"
+                            field 'filename', docFile.name
+                            field 'language', "Engish"
+                            part 'filedata', 'filename', 'application/octet-stream', docFile
+                        }
+                        request.encoder 'multipart/form-data', OkHttpEncoders.&multipart
+                    }*/
+
+
+
+
+
         }
 
 
@@ -237,6 +268,16 @@ ratpack {
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document (TODO: make visibleImageLayer dynamic)
                                                     File outputFile = imageService.producePdf(inputFile, 0)
+                                                    //Upload pdf document to LogicalDoc
+
+                                                    uploadService.uploadFile(outputFile, account.url, 4, 'eng').then { Boolean result ->
+                                                        if (result){
+                                                            log.info("file: ${outputFile.name} has been uploaded.")
+                                                        } else {
+                                                            log.info("file cannot be uploaded.")
+                                                        }
+
+                                                    }
                                                     render(view('preview', [
                                                             'message':'Document generated successfully.',
                                                             'inputImage': inputFile.path,
