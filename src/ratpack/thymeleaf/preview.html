@@ -47,6 +47,10 @@
                                 <a th:else href="#preview-output" data-toggle="tab">Output</a>
                             </li>
                         </ul>
+                        <div class="form-group pull-right">
+                            <button id="edit" class="btn btn-primary" type="button">Edit</button>
+                            <button id="save" class="btn btn-primary" type="button">Save</button>
+                        </div>
 
                         <div th:if="${fullText} != null" id="tab-content" class="tab-content">
                             <div class="tab-pane in fade active" id="preview-output">
@@ -88,13 +92,22 @@
 <div th:replace="partials/footer" />
 <script type="text/javascript" th:src="@{/assets/js/summernote.min.js}"></script>
 <script type="text/javascript">
-$(function(){
+$("#edit").click(function(){
     $('.summernote').summernote({
         height: 300,
         tabsize: 2,
-        airMode: true
+        airMode: true,
+        focus: true
     });
 });
+
+$("#save").click(function(){
+  var markup = $('.summernote').code();
+  $('.summernote').destroy();
+  console.log(markup)
+
+});
+
 </script>
 </body>
 </html>
