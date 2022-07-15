@@ -140,7 +140,7 @@ ratpack {
                     // List of documents
                     def folderId = request.queryParams['folderId']?: FOLDER_ID
                     URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                    client.get(uri) { RequestSpec reqSpec ->
+                    client.get(uri){ RequestSpec reqSpec ->
                         reqSpec.basicAuth(account.username, account.password)
                         reqSpec.headers.set ("Accept", 'application/json')
                     }.then { ReceivedResponse res ->
@@ -152,31 +152,6 @@ ratpack {
                     }
                 }
             })
-            //uploadFile(File docFile, String server, Integer folderId = 4, String language)
-
-
-
-           /* HttpBuilder http = OkHttpBuilder.configure{
-                        request.uri = "http://0.0.0.0:8080/logicaldoc/services/rest/document/upload".toURI()//this.server.uri
-                        request.auth.basic 'admin', 'admin' //this.server.username, this.server.password
-                        //request.contentType = 'application/json'
-                    }.post {
-                        request.uri.path = '/logicaldoc/services/rest/document/upload'
-                        request.contentType = 'multipart/form-data'
-                        def docFile = new File("resources/IMG.JPG")
-                        request.body = MultipartContent.multipart {
-                            field 'folderId', "4"
-                            field 'filename', docFile.name
-                            field 'language', "Engish"
-                            part 'filedata', 'filename', 'application/octet-stream', docFile
-                        }
-                        request.encoder 'multipart/form-data', OkHttpEncoders.&multipart
-                    }*/
-
-
-
-
-
         }
 
 
