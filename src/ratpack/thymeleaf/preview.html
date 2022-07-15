@@ -47,12 +47,13 @@
                                 <a th:else href="#preview-output" data-toggle="tab">Output</a>
                             </li>
                         </ul>
-                        <div class="form-group pull-right">
-                            <button id="edit" class="btn btn-primary" type="button">Edit</button>
-                            <button id="save" class="btn btn-primary" type="button">Save</button>
-                        </div>
+
 
                         <div th:if="${fullText} != null" id="tab-content" class="tab-content">
+                            <div class="form-group pull-right">
+                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
+                                <button id="save" class="btn btn-primary" type="button">Save</button>
+                            </div>
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
                             </div>
@@ -102,9 +103,9 @@ $("#edit").click(function(){
 });
 
 $("#save").click(function(){
-  var markup = $('.summernote').code();
+  var plainText = $($('.summernote').code()).text();
   $('.summernote').destroy();
-  console.log(markup)
+  console.log(plainText)
 
 });
 
