@@ -7,11 +7,7 @@ import com.corposense.services.AccountService
 import com.corposense.services.ImageService
 import com.corposense.services.UploadService
 import com.zaxxer.hikari.HikariConfig
-import groovyx.net.http.HttpBuilder
-import groovyx.net.http.MultipartContent
-import groovyx.net.http.OkHttpBuilder
-import groovyx.net.http.OkHttpEncoders
-import okhttp3.Request
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -21,17 +17,18 @@ import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
-
+import ratpack.jackson.Jackson
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
 import java.nio.file.Path
 import static ratpack.groovy.Groovy.ratpack
+import static ratpack.jackson.Jackson.jsonNode
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
 
 import groovy.json.JsonSlurper
-import ratpack.file.MimeTypes
+
 //import com.github.pemistahl.lingua.api.*
 //import static com.github.pemistahl.lingua.api.Language.*
 
@@ -159,6 +156,21 @@ ratpack {
         get('preview'){
             render(view('preview'))
         }
+        post('save'){
+           // ImageService imageService ->
+            render( parse(jsonNode()).map { def node ->
+                def editedText = node.get('payload').asText()
+                def imagePath = node.get('inputImage').asText()
+                log.info(editedText)
+                log.info(imagePath)
+                Jackson.json(['message1': editedText , 'message2':imagePath])
+
+            })
+            //TODO: create pdf file that contain the editedText
+
+            // imageService.generateDocument(editedText,imagePath)
+        }
+
 
 
         get("${uploadPath}/:imagePath"){
@@ -225,11 +237,13 @@ ratpack {
                                                             'fullText': fullText,
 //                                                            'detectedLanguage': detectedLanguage
                                                     ]))
+                                                    imageService.generateDocument(fullText,inputFile.toString())
+
                                                 } else {
                                                     // Handle other type of documents
                                                     render(view('preview', ['message':'This file type is not currently supported.']))
                                                 }
-                                                break;
+                                                break
                                             case 'produce-pdf':
 
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
@@ -264,7 +278,7 @@ ratpack {
                                                 }
 
 
-                                                break;
+                                                break
                                             default:
                                                 render('Error: Invalid option value.')
                                                 return

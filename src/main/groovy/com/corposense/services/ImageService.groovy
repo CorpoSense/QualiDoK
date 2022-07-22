@@ -13,11 +13,23 @@ import org.im4java.core.IMOperation
 import org.im4java.process.ProcessStarter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ratpack.server.BaseDir
+
 import javax.imageio.ImageIO
 import java.awt.Image
 import java.awt.image.BufferedImage
-import java.nio.file.Path
+
+
+
+import com.itextpdf.text.BaseColor
+import com.itextpdf.text.Document
+import com.itextpdf.text.DocumentException
+import com.itextpdf.text.Font
+import com.itextpdf.text.FontFactory
+import com.itextpdf.text.PageSize
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.pdf.PdfWriter
+
+
 
 @CompileStatic
 class ImageService {
@@ -61,7 +73,7 @@ class ImageService {
         this.ocrEngine.setDatapath(TESSERACT_DATA_PATH)
         this.ocrEngine.setLanguage(DEFAULT_SUPPORTED_LANGUAGES)
     }
-
+    
     String produceText(File inputImage){
         String fullText = null
 

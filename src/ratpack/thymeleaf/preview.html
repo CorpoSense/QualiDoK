@@ -50,12 +50,12 @@
 
 
                         <div th:if="${fullText} != null" id="tab-content" class="tab-content">
-                            <div class="form-group pull-right">
-                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
-                                <button id="save" class="btn btn-primary" type="button">Save</button>
-                            </div>
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
+                            </div>
+                            <div class="form-group pull-left">
+                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
+                                <button id="save" class="btn btn-primary" type="button">Save</button>
                             </div>
                         </div>
 <!--                        <div class="alert alert-info" th:if="${detectedLanguage} != null">-->
@@ -81,7 +81,7 @@
                                 <a href="#preview-document" data-toggle="tab">Original Document</a>
                             </li>
                         </ul>
-                        <img class="img-responsive" th:src="${inputImage}" alt="output" width="100%" />
+                        <img class="img-responsive" id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
                 </div><!-- .col-md-6 -->
             </div><!-- .row -->
 
@@ -105,9 +105,25 @@ $("#edit").click(function(){
 $("#save").click(function(){
   var plainText = $($('.summernote').code()).text();
   $('.summernote').destroy();
-  console.log(plainText)
+
+  var imagePath = $('#uploadedImage').attr('src');
+  console.log('Plain text:\n '+ plainText + '\n Image path: '+imagePath)
+
+  $.ajax({
+        url: 'save',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({'payload': plainText , 'inputImage': imagePath}),
+        success: function (data) {
+            console.log(data);
+        },
+        error: function(jqXHR, errMsg) {
+        console.log(errMsg);
+        }
+  });
 
 });
+
 
 </script>
 </body>
