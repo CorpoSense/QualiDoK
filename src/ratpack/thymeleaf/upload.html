@@ -42,17 +42,26 @@
                 <div class="form-group pull-right">
                     <input type="submit" class="btn btn-primary" value="Upload">
                 </div>
+                <h2>Options:</h2>
+                <div class="form-group">
+                    <label for="folderId">Directories:</label>
+                    <select id="folderId" name="folderId" class="form-control">
+                        <tr th:each="directory : ${directories}">
+                            <option value="${directory.id}"><p th:text="${directory.name}"></p></option>
+                        </tr>
+                    </select>
+                </div>
             </form>
         </div><!-- .col-md-6 -->
 
         <div class="col-md-6">
-            <h2>Options:</h2>
+            <!--<h2>Options:</h2>
             <div class="form-group">
                 <label for="folderId">Directories:</label>
                 <select id="folderId" class="form-control">
                     <option value="4">Directories</option>
                 </select>
-            </div>
+            </div> !-->
             <div class="form-group">
                 <label for="language">Language:</label>
                 <select id="language" class="form-control">

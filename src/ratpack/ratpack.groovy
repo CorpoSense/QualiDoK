@@ -186,7 +186,25 @@ ratpack {
             all { AccountService accountService ->
                 byMethod {
                     get {
-                        render(view('upload'))
+                        HttpClient client ->
+                            accountService.getActive().then({ List<Account> accounts ->
+                                Account account = accounts[0]
+
+                                // List of directories
+                                def folderId = request.queryParams['folderId']?: FOLDER_ID
+                                URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                client.get(uri){ RequestSpec reqSpec ->
+                                    reqSpec.basicAuth(account.username, account.password)
+                                    reqSpec.headers.set ("Accept", 'application/json')
+                                }.then { ReceivedResponse res ->
+
+                                    JsonSlurper jsonSlurper = new JsonSlurper()
+                                    ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                    render(view('upload',['directories' : directories ]))
+
+                                }
+                            })
+                        //render(view('upload'))
                     }
                     post { UploadService uploadService, ImageService imageService ->
                         accountService.getActive().then({ List<Account> accounts ->
@@ -213,6 +231,12 @@ ratpack {
                                         }
                                         String typeOcr = form.get('type-ocr')
                                         log.info("Type of processing: ${typeOcr}")
+                                        
+                                        //TODO: ISSUE-> How to get the selected folder from /upload
+                                        //returns:The directory choosed is: ${directory.id}
+                                        String directoryId = form.get('folderId')
+                                        log.info("The directory choosed is: ${directoryId}")
+
                                         switch (typeOcr){
                                             case 'extract-text':
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
