@@ -156,22 +156,17 @@ ratpack {
         get('preview'){
             render(view('preview'))
         }
-        post('save'){
-           // ImageService imageService ->
+        post('save'){ ImageService imageService ->
+
             render( parse(jsonNode()).map { def node ->
                 def editedText = node.get('payload').asText()
                 def imagePath = node.get('inputImage').asText()
-                log.info(editedText)
-                log.info(imagePath)
-                Jackson.json(['message1': editedText , 'message2':imagePath])
-
+                log.info("editedText: ${editedText}, imagePath: ${imagePath}")
+                //TODO: create pdf file that contain the editedText
+                imageService.generateDocument(editedText,imagePath)
+                Jackson.json(['message1': editedText , 'message2': imagePath])
             })
-            //TODO: create pdf file that contain the editedText
-
-            // imageService.generateDocument(editedText,imagePath)
         }
-
-
 
         get("${uploadPath}/:imagePath"){
             response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
@@ -261,7 +256,7 @@ ratpack {
                                                             'fullText': fullText,
 //                                                            'detectedLanguage': detectedLanguage
                                                     ]))
-                                                    imageService.generateDocument(fullText,inputFile.toString())
+                                                    //imageService.generateDocument(fullText,inputFile.toString())
 
                                                 } else {
                                                     // Handle other type of documents
@@ -283,7 +278,7 @@ ratpack {
                                                     File outputFile = imageService.producePdf(inputFile, 0)
                                                     //Upload pdf document to LogicalDoc
 
-                                                    uploadService.uploadFile(outputFile, account.url, 4, 'eng').then { Boolean result ->
+                                                    uploadService.uploadFile(outputFile, account.url, directoryId, 'eng').then { Boolean result ->
                                                         if (result){
                                                             log.info("file: ${outputFile.name} has been uploaded.")
                                                         } else {

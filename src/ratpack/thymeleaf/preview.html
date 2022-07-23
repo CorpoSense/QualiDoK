@@ -4,7 +4,6 @@
     <head th:replace="partials/head" />
     <link rel="stylesheet" th:href="@{/assets/css/font-awesome.min.css}" />
     <link rel="stylesheet" th:href="@{/assets/css/summernote.min.css}" />
-
     <style>
         div#tab-content {
             padding: 10px;
@@ -53,14 +52,28 @@
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
                             </div>
-                            <div class="form-group pull-left">
-                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
-                                <button id="save" class="btn btn-primary" type="button">Save</button>
-                            </div>
                         </div>
 <!--                        <div class="alert alert-info" th:if="${detectedLanguage} != null">-->
 <!--                            <p>Detected text: <strong th:text="${detectedLanguage}"></strong></p>-->
 <!--                        </div>-->
+
+                        <div class="form-options">
+
+                            <div class="form-group pull-left">
+                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
+                                <button id="save" class="btn btn-primary" type="button">Save</button>
+                            </div>
+                            
+                            <h2>Options:</h2>
+                            <div class="form-group">
+                                <label for="folderId">Directories:</label>
+                                <select id="folderId" name="folderId" class="form-control">
+                                    <tr th:each="directory : ${directories}">
+                                        <option th:value="${directory.id}"><p th:text="${directory.name}"></p></option>
+                                    </tr>
+                                </select>
+                            </div>
+                        </div><!-- .form-options -->
 
                         <div th:if="${outputFile} != null" class="tab-content">
                             <div class="tab-pane active">
@@ -103,9 +116,8 @@ $("#edit").click(function(){
 });
 
 $("#save").click(function(){
-  var plainText = $($('.summernote').code()).text();
+  var plainText = $('.summernote').text();
   $('.summernote').destroy();
-
   var imagePath = $('#uploadedImage').attr('src');
   console.log('Plain text:\n '+ plainText + '\n Image path: '+imagePath)
 
