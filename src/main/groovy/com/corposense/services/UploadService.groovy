@@ -11,7 +11,7 @@ import groovyx.net.http.MultipartContent
 @CompileStatic
 class UploadService {
 
-    Promise<Boolean> uploadFile(File docFile, String server, Integer folderId, String language){
+    Promise<Boolean> uploadFile(File docFile, String server, String folderId, String language){
       Blocking.get {
         OkHttpBuilder.configure {
            request.uri = "${server}/services/rest/document/upload".toURI() //this.server.uri

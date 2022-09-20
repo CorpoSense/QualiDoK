@@ -51,29 +51,19 @@
                         <div th:if="${fullText} != null" id="tab-content" class="tab-content">
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
+                                <input type="hidden" id="directoryId" th:value="${directoryId}">
                             </div>
+                            <div class="form-options">
+                                <div class="form-group pull-left">
+                                    <button id="edit" class="btn btn-primary" type="button">Edit</button>
+                                    <button id="save" class="btn btn-primary" type="button">Save</button>
+                                </div>
+                            </div><!-- .form-options -->
                         </div>
 <!--                        <div class="alert alert-info" th:if="${detectedLanguage} != null">-->
 <!--                            <p>Detected text: <strong th:text="${detectedLanguage}"></strong></p>-->
 <!--                        </div>-->
 
-                        <div class="form-options">
-
-                            <div class="form-group pull-left">
-                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
-                                <button id="save" class="btn btn-primary" type="button">Save</button>
-                            </div>
-                            
-                            <h2>Options:</h2>
-                            <div class="form-group">
-                                <label for="folderId">Directories:</label>
-                                <select id="folderId" name="folderId" class="form-control">
-                                    <tr th:each="directory : ${directories}">
-                                        <option th:value="${directory.id}"><p th:text="${directory.name}"></p></option>
-                                    </tr>
-                                </select>
-                            </div>
-                        </div><!-- .form-options -->
 
                         <div th:if="${outputFile} != null" class="tab-content">
                             <div class="tab-pane active">
@@ -119,13 +109,14 @@ $("#save").click(function(){
   var plainText = $('.summernote').text();
   $('.summernote').destroy();
   var imagePath = $('#uploadedImage').attr('src');
-  console.log('Plain text:\n '+ plainText + '\n Image path: '+imagePath)
-
+  var directoryId = $('#directoryId').attr('value');
+  console.log('Plain text:\n '+ plainText, + '\n Image path: '+imagePath ,'\n Directory chosen: '+ directoryId);
+  
   $.ajax({
         url: 'save',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({'payload': plainText , 'inputImage': imagePath}),
+        data: JSON.stringify({'payload': plainText , 'inputImage': imagePath , 'directoryId': directoryId }),
         success: function (data) {
             console.log(data);
         },

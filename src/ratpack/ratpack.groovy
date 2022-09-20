@@ -156,16 +156,35 @@ ratpack {
         get('preview'){
             render(view('preview'))
         }
-        post('save'){ ImageService imageService ->
 
+        post('save'){ ImageService imageService, UploadService uploadService, AccountService accountService ->
+        
             render( parse(jsonNode()).map { def node ->
-                def editedText = node.get('payload').asText()
-                def imagePath = node.get('inputImage').asText()
-                log.info("editedText: ${editedText}, imagePath: ${imagePath}")
-                //TODO: create pdf file that contain the editedText
-                imageService.generateDocument(editedText,imagePath)
-                Jackson.json(['message1': editedText , 'message2': imagePath])
+                accountService.getActive().then({ List<Account> accounts ->
+                    Account account = accounts[0]
+                    if (accounts.isEmpty() || !account){
+                         render(view('upload', [message:'You must create a server account.']))
+                    } else {
+                        def editedText = node.get('payload').asText()
+                        def imagePath = node.get('inputImage').asText()
+                        def directoryId = node.get('directoryId').asText()
+                        log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}")
+                    
+                        File outputFile = imageService.generateDocument(editedText,imagePath)
+
+                        uploadService.uploadFile(outputFile, account.url, directoryId, 'eng').then { Boolean result ->
+                            if (result){
+                                log.info("file: ${outputFile.name} has been uploaded.")
+                            } else {
+                                log.info("file cannot be uploaded.")
+                            }
+
+                        }
+                        Jackson.json(['message1': editedText , 'message2': imagePath , 'message3': directoryId])
+                    }    
+                })
             })
+        
         }
 
         get("${uploadPath}/:imagePath"){
@@ -227,10 +246,8 @@ ratpack {
                                         String typeOcr = form.get('type-ocr')
                                         log.info("Type of processing: ${typeOcr}")
                                         
-                                        //TODO: ISSUE-> How to get the selected folder from /upload
-                                        //returns:The directory choosed is: ${directory.id}
                                         String directoryId = form.get('folderId')
-                                        log.info("The directory choosed is: ${directoryId}")
+                                        log.info("Chosen directory: ${directoryId}")
 
                                         switch (typeOcr){
                                             case 'extract-text':
@@ -254,10 +271,10 @@ ratpack {
                                                             'message': (fullText? 'Image processed successfully.':'No output can be found.'),
                                                             'inputImage': inputFile.path,
                                                             'fullText': fullText,
+                                                            'directoryId': directoryId
 //                                                            'detectedLanguage': detectedLanguage
                                                     ]))
-                                                    //imageService.generateDocument(fullText,inputFile.toString())
-
+                                                    
                                                 } else {
                                                     // Handle other type of documents
                                                     render(view('preview', ['message':'This file type is not currently supported.']))
