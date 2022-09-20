@@ -6,9 +6,9 @@
 #gradle/
 #gradlew*
 src/ratpack/public/uploads/
-src/ratpack/public/generatedFiles/
+src/ratpack/public/downloads/
 public/uploads/
-public/generatedFiles/
+public/downloads/
 
 # Ignore Gradle GUI config
 gradle-app.setting
