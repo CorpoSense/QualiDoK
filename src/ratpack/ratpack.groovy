@@ -165,12 +165,12 @@ ratpack {
                     if (accounts.isEmpty() || !account){
                          render(view('upload', [message:'You must create a server account.']))
                     } else {
-                        def editedText = node.get('payload').asText()
-                        def imagePath = node.get('inputImage').asText()
-                        def directoryId = node.get('directoryId').asText()
+                        String editedText = new String(node.get('payload').asText().toString().decodeBase64())
+                        String imagePath = node.get('inputImage').asText()
+                        String directoryId = node.get('directoryId').asText()
                         log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}")
                     
-                        File outputFile = imageService.generateDocument(editedText,imagePath)
+                        File outputFile = imageService.generateDocument(new String(editedText),imagePath)
 
                         uploadService.uploadFile(outputFile, account.url, directoryId, 'eng').then { Boolean result ->
                             if (result){

@@ -18,8 +18,6 @@ import javax.imageio.ImageIO
 import java.awt.Image
 import java.awt.image.BufferedImage
 
-
-
 import com.itextpdf.text.BaseColor
 import com.itextpdf.text.Document
 import com.itextpdf.text.DocumentException
@@ -28,8 +26,7 @@ import com.itextpdf.text.FontFactory
 import com.itextpdf.text.PageSize
 import com.itextpdf.text.Paragraph
 import com.itextpdf.text.pdf.PdfWriter
-
-
+import com.itextpdf.html2pdf.HtmlConverter
 
 @CompileStatic
 class ImageService {
@@ -92,15 +89,18 @@ class ImageService {
 
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
             FileOutputStream fos = new FileOutputStream(doc.toString())
-            PdfWriter.getInstance(document, fos)
+            // use HTMLConverter
+            HtmlConverter.convertToPdf(fullText, fos)
+
+            // PdfWriter.getInstance(document, fos)
             //Open the Document
-            document.open()
+            // document.open()
             //Add content
-            Font font = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK)
-            Paragraph paragraph = new Paragraph(fullText, font)
-            document.add(paragraph)
-            File docPdf = new File(doc.parent, "${doc.name}")
-            log.info("pdf document will be created at: ${docPdf}")
+            // Font font = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK)
+            // Paragraph paragraph = new Paragraph(fullText, font)
+            // document.add(paragraph)
+            // File docPdf = new File(doc.parent, "${doc.name}")
+            log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
