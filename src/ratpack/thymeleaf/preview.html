@@ -52,6 +52,7 @@
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
                                 <input type="hidden" id="directoryId" th:value="${directoryId}">
+                                <input type="hidden" id="language" th:value="${language}">                              
                             </div>
                             
                         </div>
@@ -62,10 +63,20 @@
 
                         <div th:if="${outputFile} != null" class="tab-content">
                             <div class="tab-pane active">
-                                <embed th:src="${outputFile}" type="application/pdf" width="100%" height="500px" />
+                                <embed id="outputFile" th:src="${outputFile}" type="application/pdf" width="100%" height="500px" />
+                                <input type="hidden" id="directoryId" th:value="${directoryId}">
+                                <input type="hidden" id="language" th:value="${language}">  
                             </div>
                         </div>
 
+                        <!-- <div class="row" th:if="${result} == true">
+                            <div class="col-md-12">
+                                <div class="alert alert-info">
+                                    <p>Document upload</p>
+                                </div>
+                            </div>
+                        </div> -->
+                        
                         <div th:if="${fullText} != null" class="form-options">
                             <div class="form-group pull-left">
                                 <button id="edit" class="btn btn-primary" type="button">Edit</button>
@@ -113,6 +124,9 @@ $("#edit").click(function(){
         airMode: true,
         focus: true
     });
+    
+    $("#save").removeAttr("disabled"); // removing attribute
+   
 });
 
 $("#save").click(function(){
@@ -124,7 +138,10 @@ $("#save").click(function(){
 
   var imagePath = $('#uploadedImage').attr('src');
   var directoryId = $('#directoryId').attr('value');
-  console.log('Full text:\n '+ encodedText, + '\n Image path: '+imagePath ,'\n Directory chosen: '+ directoryId);
+  var language = $('#language').attr('value');
+
+  console.log('Full text:\n '+ encodedText, + '\n Image path: '+imagePath ,'\n Directory chosen: '+ directoryId ,'\n Language: '+language);
+
 var encodedPayload = '';
   if (btoa){
     encodedPayload = btoa(unescape(encodeURIComponent(encodedText)))
@@ -137,7 +154,7 @@ var encodedPayload = '';
         url: 'save',
         type: 'POST',
         contentType: 'application/json',
-        data: JSON.stringify({'payload': encodedPayload , 'inputImage': imagePath , 'directoryId': directoryId }),
+        data: JSON.stringify({'payload': encodedPayload , 'inputImage': imagePath , 'directoryId': directoryId ,'language': language }),
         success: function (data) {
             console.log(data);
         },
@@ -145,12 +162,29 @@ var encodedPayload = '';
             console.log(errMsg);
         }
   });
+  $("#save").attr('disabled', 'disabled');
 
 }); //
 
 $("#upload").click(function(){
     console.log('upload...');
+    var outputFile = $('#outputFile').attr('src');
+    var directoryId = $('#directoryId').attr('value');
+    var language = $('#language').attr('value');
+    $.ajax({
+        url: 'uploadDoc',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({'directoryId': directoryId ,'language': language, 'outputFile':outputFile }),
+        success: function (data) {
+            console.log(data);
+        },
+        error: function(jqXHR, errMsg) {
+            console.log(errMsg);
+        }
+  });
 });
+
 
 
 </script>

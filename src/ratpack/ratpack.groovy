@@ -168,11 +168,14 @@ ratpack {
                         String editedText = new String(node.get('payload').asText().toString().decodeBase64())
                         String imagePath = node.get('inputImage').asText()
                         String directoryId = node.get('directoryId').asText()
-                        log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}")
-                    
-                        File outputFile = imageService.generateDocument(new String(editedText),imagePath)
+                        String language = node.get('language').asText()
 
-                        uploadService.uploadFile(outputFile, account.url, directoryId, 'eng').then { Boolean result ->
+                        log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}, language: ${language}")
+                         
+                        File outputFile = imageService.generateDocument(new String(editedText),imagePath)
+                    
+                        
+                        uploadService.uploadFile(outputFile, account.url, directoryId, language).then { Boolean result ->
                             if (result){
                                 log.info("file: ${outputFile.name} has been uploaded.")
                             } else {
@@ -180,12 +183,40 @@ ratpack {
                             }
 
                         }
-                        Jackson.json(['message1': editedText , 'message2': imagePath , 'message3': directoryId])
+                        Jackson.json(['message1': editedText , 'message2': imagePath , 'message3': directoryId , 'message4': language])
                     }    
                 })
             })
         
         }
+        post('uploadDoc'){ 
+             UploadService uploadService, AccountService accountService ->
+                render( parse(jsonNode()).map { def node ->
+                    accountService.getActive().then({ List<Account> accounts ->
+                        Account account = accounts[0]
+                        if (accounts.isEmpty() || !account){
+                            render(view('upload', [message:'You must create a server account.']))
+                        } else {
+                            String directoryId = node.get('directoryId').asText()
+                            String language = node.get('language').asText()
+                            String filePath = node.get('outputFile').asText()
+                            log.info("filePath: ${filePath}, directoryId: ${directoryId}, language:${language}")
+                            File outputFile = new File(filePath)
+                            uploadService.uploadFile(outputFile, account.url, directoryId, language).then { Boolean result ->
+                                if (result){
+                                    log.info("file: ${outputFile.name} has been uploaded.")
+                                } else {
+                                    log.info("file cannot be uploaded.")
+                                }
+
+                            }
+                            Jackson.json(['message1': directoryId , 'message2': imagePath , 'message3': language])
+                        }
+                    })
+                })
+           
+        }
+        
 
         get("${uploadPath}/:imagePath"){
             response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
@@ -249,6 +280,10 @@ ratpack {
                                         String directoryId = form.get('folderId')
                                         log.info("Chosen directory: ${directoryId}")
 
+                                        String language = form.get('language')
+                                        log.info("Chosen language: ${language}")
+                                       
+
                                         switch (typeOcr){
                                             case 'extract-text':
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
@@ -271,7 +306,8 @@ ratpack {
                                                             'message': (fullText? 'Image processed successfully.':'No output can be found.'),
                                                             'inputImage': inputFile.path,
                                                             'fullText': fullText,
-                                                            'directoryId': directoryId
+                                                            'directoryId': directoryId,
+                                                            'language': language
 //                                                            'detectedLanguage': detectedLanguage
                                                     ]))
                                                     
@@ -295,18 +331,20 @@ ratpack {
                                                     File outputFile = imageService.producePdf(inputFile, 0)
                                                     //Upload pdf document to LogicalDoc
 
-                                                    uploadService.uploadFile(outputFile, account.url, directoryId, 'eng').then { Boolean result ->
-                                                        if (result){
-                                                            log.info("file: ${outputFile.name} has been uploaded.")
-                                                        } else {
-                                                            log.info("file cannot be uploaded.")
-                                                        }
+                                                    // uploadService.uploadFile(outputFile, account.url, directoryId, language).then { Boolean result ->
+                                                    //     if (result){
+                                                    //         log.info("file: ${outputFile.name} has been uploaded.")
+                                                    //     } else {
+                                                    //         log.info("file cannot be uploaded.")
+                                                    //     }
 
-                                                    }
+                                                    // }
                                                     render(view('preview', [
                                                             'message':'Document generated successfully.',
                                                             'inputImage': inputFile.path,
-                                                            'outputFile': outputFile.path
+                                                            'outputFile': outputFile.path,
+                                                            'directoryId': directoryId,
+                                                            'language': language
                                                     ]))
                                                 } else {
                                                     // Handle other type of documents
