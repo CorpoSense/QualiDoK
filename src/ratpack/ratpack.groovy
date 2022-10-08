@@ -210,7 +210,7 @@ ratpack {
                                 }
 
                             }
-                            Jackson.json(['message1': directoryId , 'message2': imagePath , 'message3': language])
+                            Jackson.json(['message1': directoryId , 'message2': filePath , 'message3': language])
                         }
                     })
                 })
