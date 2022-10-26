@@ -68,14 +68,6 @@
                                 <input type="hidden" id="language" th:value="${language}">  
                             </div>
                         </div>
-
-                        <!-- <div class="row" th:if="${result} == true">
-                            <div class="col-md-12">
-                                <div class="alert alert-info">
-                                    <p>Document upload</p>
-                                </div>
-                            </div>
-                        </div> -->
                         
                         <div th:if="${fullText} != null" class="form-options">
                             <div class="form-group pull-left">
@@ -108,6 +100,14 @@
                         <img class="img-responsive" id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
                 </div><!-- .col-md-6 -->
             </div><!-- .row -->
+           
+            <div class="alert alert-success hidden" id="msg-success"> 
+                <p>Document uploaded successfully.</p>    
+            </div>
+            <div class="alert alert-danger hidden" id="msg-failure"> 
+              <p>Error uploading document</p>    
+            </div>
+            
 
         </div><!-- .col-md-12 -->
     </div><!-- .row -->
@@ -126,6 +126,8 @@ $("#edit").click(function(){
     });
     
     $("#save").removeAttr("disabled"); // removing attribute
+    $('#msg-success').addClass('hidden');
+    $('#msg-failure').addClass('hidden');
    
 });
 
@@ -140,16 +142,143 @@ $("#save").click(function(){
   var directoryId = $('#directoryId').attr('value');
   var language = $('#language').attr('value');
 
-  console.log('Full text:\n '+ encodedText, + '\n Image path: '+imagePath ,'\n Directory chosen: '+ directoryId ,'\n Language: '+language);
+  //console.log('Full text:\n '+ encodedText, + '\n Image path: '+imagePath ,'\n Directory chosen: '+ directoryId ,'\n Language: '+language);
 
-var encodedPayload = '';
-  if (btoa){
-    encodedPayload = btoa(unescape(encodeURIComponent(encodedText)))
-  } else {
-    Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
-    encodedPayload = Base64.encode(encodedText)
+
+
+// var encodedPayload = '';
+//   if (btoa){
+//     encodedPayload = btoa(unescape(encodeURIComponent(encodedText)))
+//   } else {
+//     Base64={_keyStr:"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",encode:function(e){var t="";var n,r,i,s,o,u,a;var f=0;e=Base64._utf8_encode(e);while(f<e.length){n=e.charCodeAt(f++);r=e.charCodeAt(f++);i=e.charCodeAt(f++);s=n>>2;o=(n&3)<<4|r>>4;u=(r&15)<<2|i>>6;a=i&63;if(isNaN(r)){u=a=64}else if(isNaN(i)){a=64}t=t+this._keyStr.charAt(s)+this._keyStr.charAt(o)+this._keyStr.charAt(u)+this._keyStr.charAt(a)}return t},decode:function(e){var t="";var n,r,i;var s,o,u,a;var f=0;e=e.replace(/[^A-Za-z0-9\+\/\=]/g,"");while(f<e.length){s=this._keyStr.indexOf(e.charAt(f++));o=this._keyStr.indexOf(e.charAt(f++));u=this._keyStr.indexOf(e.charAt(f++));a=this._keyStr.indexOf(e.charAt(f++));n=s<<2|o>>4;r=(o&15)<<4|u>>2;i=(u&3)<<6|a;t=t+String.fromCharCode(n);if(u!=64){t=t+String.fromCharCode(r)}if(a!=64){t=t+String.fromCharCode(i)}}t=Base64._utf8_decode(t);return t},_utf8_encode:function(e){e=e.replace(/\r\n/g,"\n");var t="";for(var n=0;n<e.length;n++){var r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r)}else if(r>127&&r<2048){t+=String.fromCharCode(r>>6|192);t+=String.fromCharCode(r&63|128)}else{t+=String.fromCharCode(r>>12|224);t+=String.fromCharCode(r>>6&63|128);t+=String.fromCharCode(r&63|128)}}return t},_utf8_decode:function(e){var t="";var n=0;var r=c1=c2=0;while(n<e.length){r=e.charCodeAt(n);if(r<128){t+=String.fromCharCode(r);n++}else if(r>191&&r<224){c2=e.charCodeAt(n+1);t+=String.fromCharCode((r&31)<<6|c2&63);n+=2}else{c2=e.charCodeAt(n+1);c3=e.charCodeAt(n+2);t+=String.fromCharCode((r&15)<<12|(c2&63)<<6|c3&63);n+=3}}return t}}
+//     encodedPayload = Base64.encode(encodedText)
+//   }
+
+/* Base64 string to array encoding */
+function uint6ToB64(nUint6) {
+  return nUint6 < 26
+    ? nUint6 + 65
+    : nUint6 < 52
+    ? nUint6 + 71
+    : nUint6 < 62
+    ? nUint6 - 4
+    : nUint6 === 62
+    ? 43
+    : nUint6 === 63
+    ? 47
+    : 65;
+}
+
+function base64EncArr(aBytes) {
+  let nMod3 = 2;
+  let sB64Enc = "";
+
+  const nLen = aBytes.length;
+  let nUint24 = 0;
+  for (let nIdx = 0; nIdx < nLen; nIdx++) {
+    nMod3 = nIdx % 3;
+    if (nIdx > 0 && ((nIdx * 4) / 3) % 76 === 0) {
+      sB64Enc += "\r\n";
+    }
+
+    nUint24 |= aBytes[nIdx] << ((16 >>> nMod3) & 24);
+    if (nMod3 === 2 || aBytes.length - nIdx === 1) {
+      sB64Enc += String.fromCodePoint(
+        uint6ToB64((nUint24 >>> 18) & 63),
+        uint6ToB64((nUint24 >>> 12) & 63),
+        uint6ToB64((nUint24 >>> 6) & 63),
+        uint6ToB64(nUint24 & 63)
+      );
+      nUint24 = 0;
+    }
   }
-   
+  return (
+    sB64Enc.substr(0, sB64Enc.length - 2 + nMod3) +
+    (nMod3 === 2 ? "" : nMod3 === 1 ? "=" : "==")
+  );
+}
+
+function strToUTF8Arr(sDOMStr) {
+  let aBytes;
+  let nChr;
+  const nStrLen = sDOMStr.length;
+  let nArrLen = 0;
+
+  /* mapping… */
+  for (let nMapIdx = 0; nMapIdx < nStrLen; nMapIdx++) {
+    nChr = sDOMStr.codePointAt(nMapIdx);
+
+    if (nChr > 65536) {
+      nMapIdx++;
+    }
+
+    nArrLen +=
+      nChr < 0x80
+        ? 1
+        : nChr < 0x800
+        ? 2
+        : nChr < 0x10000
+        ? 3
+        : nChr < 0x200000
+        ? 4
+        : nChr < 0x4000000
+        ? 5
+        : 6;
+  }
+
+  aBytes = new Uint8Array(nArrLen);
+
+  /* transcription… */
+  let nIdx = 0;
+  let nChrIdx = 0;
+  while (nIdx < nArrLen) {
+    nChr = sDOMStr.codePointAt(nChrIdx);
+    if (nChr < 128) {
+      /* one byte */
+      aBytes[nIdx++] = nChr;
+    } else if (nChr < 0x800) {
+      /* two bytes */
+      aBytes[nIdx++] = 192 + (nChr >>> 6);
+      aBytes[nIdx++] = 128 + (nChr & 63);
+    } else if (nChr < 0x10000) {
+      /* three bytes */
+      aBytes[nIdx++] = 224 + (nChr >>> 12);
+      aBytes[nIdx++] = 128 + ((nChr >>> 6) & 63);
+      aBytes[nIdx++] = 128 + (nChr & 63);
+    } else if (nChr < 0x200000) {
+      /* four bytes */
+      aBytes[nIdx++] = 240 + (nChr >>> 18);
+      aBytes[nIdx++] = 128 + ((nChr >>> 12) & 63);
+      aBytes[nIdx++] = 128 + ((nChr >>> 6) & 63);
+      aBytes[nIdx++] = 128 + (nChr & 63);
+      nChrIdx++;
+    } else if (nChr < 0x4000000) {
+      /* five bytes */
+      aBytes[nIdx++] = 248 + (nChr >>> 24);
+      aBytes[nIdx++] = 128 + ((nChr >>> 18) & 63);
+      aBytes[nIdx++] = 128 + ((nChr >>> 12) & 63);
+      aBytes[nIdx++] = 128 + ((nChr >>> 6) & 63);
+      aBytes[nIdx++] = 128 + (nChr & 63);
+      nChrIdx++;
+    } /* if (nChr <= 0x7fffffff) */ else {
+      /* six bytes */
+      aBytes[nIdx++] = 252 + (nChr >>> 30);
+      aBytes[nIdx++] = 128 + ((nChr >>> 24) & 63);
+      aBytes[nIdx++] = 128 + ((nChr >>> 18) & 63);
+      aBytes[nIdx++] = 128 + ((nChr >>> 12) & 63);
+      aBytes[nIdx++] = 128 + ((nChr >>> 6) & 63);
+      aBytes[nIdx++] = 128 + (nChr & 63);
+      nChrIdx++;
+    }
+    nChrIdx++;
+  }
+
+  return aBytes;
+}
+
+var aMyUTF8Input = strToUTF8Arr(encodedText);
+var encodedPayload = base64EncArr(aMyUTF8Input);
+
   $.ajax({
         url: 'save',
         type: 'POST',
@@ -157,9 +286,12 @@ var encodedPayload = '';
         data: JSON.stringify({'payload': encodedPayload , 'inputImage': imagePath , 'directoryId': directoryId ,'language': language }),
         success: function (data) {
             console.log(data);
+            $('#msg-success').removeClass('hidden');
         },
         error: function(jqXHR, errMsg) {
             console.log(errMsg);
+            $('#msg-failure').removeClass('hidden');
+            
         }
   });
   $("#save").attr('disabled', 'disabled');
