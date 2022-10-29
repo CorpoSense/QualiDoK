@@ -13,11 +13,20 @@ import org.im4java.core.IMOperation
 import org.im4java.process.ProcessStarter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import ratpack.server.BaseDir
+
 import javax.imageio.ImageIO
 import java.awt.Image
 import java.awt.image.BufferedImage
-import java.nio.file.Path
+
+import com.itextpdf.text.BaseColor
+import com.itextpdf.text.Document
+import com.itextpdf.text.DocumentException
+import com.itextpdf.text.Font
+import com.itextpdf.text.FontFactory
+import com.itextpdf.text.PageSize
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.pdf.PdfWriter
+import com.itextpdf.html2pdf.HtmlConverter
 
 @CompileStatic
 class ImageService {
@@ -60,6 +69,47 @@ class ImageService {
         this.ocrEngine.setTessVariable("user_defined_dpi", "${IMAGE_DENSITY}");
         this.ocrEngine.setDatapath(TESSERACT_DATA_PATH)
         this.ocrEngine.setLanguage(DEFAULT_SUPPORTED_LANGUAGES)
+    }
+
+    File generateDocument(String fullText , String inputImage) throws FileNotFoundException, DocumentException {
+        Document document = null
+        // Get a PdfWriter instance
+        File doc = null
+        try {
+            document = new Document(PageSize.LETTER)
+            //ex:image.jpg
+            String filewExt = inputImage.substring(inputImage.lastIndexOf('/') + 1)
+            //ex:image
+            String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
+            log.info("${filewExt}")
+            log.info("${fileName}")
+
+            //we use this if the input File has File as a Type
+            // String fileName = getFileNameWithoutExt(inputImage)+'.pdf'
+
+            doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
+            FileOutputStream fos = new FileOutputStream(doc.toString())
+            // use HTMLConverter
+            HtmlConverter.convertToPdf(fullText, fos)
+
+            // PdfWriter.getInstance(document, fos)
+            //Open the Document
+            // document.open()
+            //Add content
+            // Font font = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK)
+            // Paragraph paragraph = new Paragraph(fullText, font)
+            // document.add(paragraph)
+            // File docPdf = new File(doc.parent, "${doc.name}")
+            log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        } finally {
+            //Close the document
+            if (document){
+                document.close()
+            }
+        }
+        return doc
     }
 
     String produceText(File inputImage){

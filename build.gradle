@@ -50,6 +50,8 @@ dependencies {
         exclude group: 'ch.qos.logback', module: 'logback-classic'
     }
     implementation 'com.itextpdf:itextpdf:5.5.13.2'
+    implementation 'com.itextpdf:html2pdf:4.0.3' // try a newer version
+
     implementation 'org.im4java:im4java:1.4.0'
     implementation 'org.apache.pdfbox:pdfbox:2.0.24'
 

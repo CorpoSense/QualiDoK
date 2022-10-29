@@ -7,23 +7,28 @@ import com.corposense.services.AccountService
 import com.corposense.services.ImageService
 import com.corposense.services.UploadService
 import com.zaxxer.hikari.HikariConfig
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
 import ratpack.form.Form
 import ratpack.form.UploadedFile
 import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
-import ratpack.server.BaseDir
+import ratpack.jackson.Jackson
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
 import java.nio.file.Path
 import static ratpack.groovy.Groovy.ratpack
+import static ratpack.jackson.Jackson.jsonNode
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 import static ratpack.jackson.Jackson.json
-import static ratpack.jackson.Jackson.fromJson
+
+import groovy.json.JsonSlurper
+
 //import com.github.pemistahl.lingua.api.*
 //import static com.github.pemistahl.lingua.api.Language.*
 
@@ -98,7 +103,7 @@ ratpack {
     }
     handlers {
 
-        get { AccountService accountService /*, ImageService imageService */ ->
+        get { AccountService accountService /*, ImageService imageService */, HttpClient client  ->
 /*
             String outputText = ''
             File outputFile = null
@@ -129,37 +134,100 @@ ratpack {
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
-                    render(view("index", ['account': account]))
-                }
-            })
-
-        }
-
-        get('list') { HttpClient client, AccountService accountService ->
-            accountService.getActive().then({ List<Account> accounts ->
-                Account account = accounts[0]
-                if (accounts.isEmpty() || !account){
-                    render(json([:]))
-                } else {
                     // List of documents
                     def folderId = request.queryParams['folderId']?: FOLDER_ID
-                    URI url = "${account.url}/logicaldoc/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                    client.get(url) { RequestSpec reqSpec ->
+                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                    client.get(uri){ RequestSpec reqSpec ->
                         reqSpec.basicAuth(account.username, account.password)
                         reqSpec.headers.set ("Accept", 'application/json')
                     }.then { ReceivedResponse res ->
-                        res.forwardTo(response)
-                        // def directories = new groovy.json.JsonSlurper(res.body.text)
-                        // render(view('list', [directories: directories]))
+
+                        JsonSlurper jsonSlurper = new JsonSlurper()
+                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                        render(view('index',['directories' : directories , 'account': account ]))
                     }
                 }
-
             })
-        } // list
+        }
 
+
+       
         get('preview'){
             render(view('preview'))
         }
+
+        post('save'){ ImageService imageService, UploadService uploadService, AccountService accountService ->
+        
+            render( parse(jsonNode()).map { def node ->
+                accountService.getActive().then({ List<Account> accounts ->
+                    Account account = accounts[0]
+                    if (accounts.isEmpty() || !account){
+                         render(view('upload', [message:'You must create a server account.']))
+                    } else {
+                        String editedText = new String(node.get('payload').asText().toString().decodeBase64())
+                        String imagePath = node.get('inputImage').asText()
+                        String directoryId = node.get('directoryId').asText()
+                        String languageId = node.get('languageId').asText()
+
+                        log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}, languageId: ${languageId}")
+                         
+                        File outputFile = imageService.generateDocument(new String(editedText),imagePath)
+                    
+                        
+                        uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
+                            if (result){
+                                log.info("file: ${outputFile.name} has been uploaded.")
+                            } else {
+                                log.info("file cannot be uploaded.")
+                            }
+
+                        }
+                        Jackson.json(['editedText': editedText , 
+                                      'imagePath': imagePath , 
+                                      'directoryId': directoryId ,
+                                      'languageId': languageId])
+                    }    
+                })
+            })
+        
+        }
+        post('uploadDoc'){ 
+             UploadService uploadService, AccountService accountService ->
+                render( parse(jsonNode()).map { def node ->
+                    accountService.getActive().then({ List<Account> accounts ->
+                        Account account = accounts[0]
+                        if (accounts.isEmpty() || !account){
+                            render(view('upload', [message:'You must create a server account.']))
+                        } else {
+                            String directoryId = node.get('directoryId').asText()
+                            String languageId = node.get('languageId').asText()
+                            String filePath = node.get('outputFile').asText()
+
+                            log.info("filePath: ${filePath},directoryId: ${directoryId},languageId:${languageId}")
+
+                            File outputFile = new File(filePath)
+
+                            uploadService.uploadFile(outputFile, 
+                                                     account.url, 
+                                                     directoryId,
+                                                     languageId).then { Boolean result ->
+                                if (result){
+                                    log.info("file: ${outputFile.name} has been uploaded.")
+                                } else {
+                                    log.info("file cannot be uploaded.")
+                                }
+
+                            }
+                            Jackson.json(['directoryId': directoryId , 
+                                          'filePath': filePath , 
+                                          'languageId': languageId])
+                        }
+                    })
+                })
+           
+        }
+        
 
         get("${uploadPath}/:imagePath"){
             response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
@@ -176,7 +244,7 @@ ratpack {
                     get {
                         render(view('upload'))
                     }
-                    post { UploadService uploadService, ImageService imageService ->
+                    post { UploadService uploadService, ImageService imageService, HttpClient client  ->
                         accountService.getActive().then({ List<Account> accounts ->
                             Account account = accounts[0]
                             if (accounts.isEmpty() || !account){
@@ -201,6 +269,7 @@ ratpack {
                                         }
                                         String typeOcr = form.get('type-ocr')
                                         log.info("Type of processing: ${typeOcr}")
+                                        
                                         switch (typeOcr){
                                             case 'extract-text':
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
@@ -218,18 +287,33 @@ ratpack {
 //                                                    Language detectedLanguage = detector.detectLanguageOf(fullText)
 //                                                    def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
 //                                                    log.info("detectedLanguage: ${detectedLanguage}")
+                                                     
+                                
+                                                        // List of directories
+                                                        def folderId = request.queryParams['folderId']?: FOLDER_ID
+                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                        client.get(uri){ RequestSpec reqSpec ->
+                                                            reqSpec.basicAuth(account.username, account.password)
+                                                            reqSpec.headers.set ("Accept", 'application/json')
+                                                        }.then { ReceivedResponse res ->
 
+                                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                           
                                                     render(view('preview', [
                                                             'message': (fullText? 'Image processed successfully.':'No output can be found.'),
                                                             'inputImage': inputFile.path,
                                                             'fullText': fullText,
-//                                                            'detectedLanguage': detectedLanguage
+                                                            'directories' : directories
+//                                                           'detectedLanguage': detectedLanguage
                                                     ]))
+                                                }
+                                                    
                                                 } else {
                                                     // Handle other type of documents
                                                     render(view('preview', ['message':'This file type is not currently supported.']))
                                                 }
-                                                break;
+                                                break
                                             case 'produce-pdf':
 
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
@@ -243,18 +327,31 @@ ratpack {
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document (TODO: make visibleImageLayer dynamic)
                                                     File outputFile = imageService.producePdf(inputFile, 0)
-                                                    render(view('preview', [
-                                                            'message':'Document generated successfully.',
-                                                            'inputImage': inputFile.path,
-                                                            'outputFile': outputFile.path
-                                                    ]))
+                                                    
+                                                    // List of directories
+                                                    def folderId = request.queryParams['folderId']?: FOLDER_ID
+                                                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                    client.get(uri){ RequestSpec reqSpec ->
+                                                        reqSpec.basicAuth(account.username, account.password)
+                                                        reqSpec.headers.set ("Accept", 'application/json')
+                                                    }.then { ReceivedResponse res ->
+                                                        JsonSlurper jsonSlurper = new JsonSlurper()
+                                                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                        render(view('preview', [
+                                                                'message':'Document generated successfully.',
+                                                                'inputImage': inputFile.path,
+                                                                'outputFile': outputFile.path,
+                                                                'directories': directories
+                                                        ]))
+                                                    }
                                                 } else {
                                                     // Handle other type of documents
                                                     render(view('preview', ['message':'This file type is not currently supported.']))
                                                 }
 
 
-                                                break;
+                                                break
                                             default:
                                                 render('Error: Invalid option value.')
                                                 return

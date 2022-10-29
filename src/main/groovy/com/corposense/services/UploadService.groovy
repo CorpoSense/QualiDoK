@@ -11,14 +11,14 @@ import groovyx.net.http.MultipartContent
 @CompileStatic
 class UploadService {
 
-    Promise<Boolean> uploadFile(File docFile, String server, Integer folderId = 4, String language){
+    Promise<Boolean> uploadFile(File docFile, String server, String folderId, String language){
       Blocking.get {
         OkHttpBuilder.configure {
-           request.uri = "${server}/logicaldoc/services/rest/document/upload".toURI() //this.server.uri
+           request.uri = "${server}/services/rest/document/upload".toURI() //this.server.uri
            request.auth.basic 'admin', 'admin' //this.server.username, this.server.password
 //           request.contentType = 'application/json'
        }.post {
-          request.uri.path = '/logicaldoc/services/rest/document/upload'
+          request.uri.path = '/services/rest/document/upload'
           request.contentType = 'multipart/form-data'
           request.body = MultipartContent.multipart {
             field 'folderId', "${folderId}"
