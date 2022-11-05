@@ -60,8 +60,10 @@ dependencies {
 
 
     // The production code uses the SLF4J logging API at compile time
-    runtime "org.slf4j:slf4j-api:${slf4jVersion}"
-    runtime "org.slf4j:slf4j-simple:${slf4jVersion}"
+//    runtime "org.slf4j:slf4j-simple:${slf4jVersion}"
+    implementation "org.slf4j:slf4j-simple:${slf4jVersion}"
+//    runtime "org.slf4j:slf4j-api:${slf4jVersion}"
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
 
 
     // okhttp
