@@ -6,6 +6,7 @@ import com.corposense.ocr.ImageConverter
 import com.corposense.services.AccountService
 import com.corposense.services.ImageService
 import com.corposense.services.UploadService
+import com.fasterxml.jackson.databind.JsonNode
 import com.zaxxer.hikari.HikariConfig
 
 import org.slf4j.Logger
@@ -150,8 +151,6 @@ ratpack {
                 }
             })
         }
-
-
        
         get('preview'){
             render(view('preview'))
@@ -159,7 +158,7 @@ ratpack {
 
         post('save'){ ImageService imageService, UploadService uploadService, AccountService accountService ->
         
-            render( parse(jsonNode()).map { def node ->
+            render( parse(jsonNode()).map { JsonNode node ->
                 accountService.getActive().then({ List<Account> accounts ->
                     Account account = accounts[0]
                     if (accounts.isEmpty() || !account){
@@ -169,22 +168,17 @@ ratpack {
                         String imagePath = node.get('inputImage').asText()
                         String directoryId = node.get('directoryId').asText()
                         String languageId = node.get('languageId').asText()
-
                         log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}, languageId: ${languageId}")
-                         
                         File outputFile = imageService.generateDocument(new String(editedText),imagePath)
-                    
-                        
                         uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
                             if (result){
                                 log.info("file: ${outputFile.name} has been uploaded.")
                             } else {
                                 log.info("file cannot be uploaded.")
                             }
-
                         }
-                        Jackson.json(['editedText': editedText , 
-                                      'imagePath': imagePath , 
+                        return json(['editedText': editedText ,
+                                      'imagePath': imagePath ,
                                       'directoryId': directoryId ,
                                       'languageId': languageId])
                     }    
