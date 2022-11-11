@@ -74,7 +74,7 @@ ratpack {
                 event.registry.get(AccountService)
                         .create(new Account(
                                 name: 'Main Server',
-                                url: 'http://0.0.0.0:8080',
+                                url: 'http://0.0.0.0:8080/logicaldoc',
                                 // url: 'http://127.0.0.1:8080',
                                 username: 'admin',
                                 password: 'admin',
