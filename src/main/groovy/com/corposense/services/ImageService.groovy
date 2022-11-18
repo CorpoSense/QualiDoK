@@ -8,6 +8,9 @@ import net.sourceforge.tess4j.ITesseract
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 import net.sourceforge.tess4j.util.ImageHelper
+import org.apache.pdfbox.multipdf.PDFMergerUtility
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
 import org.im4java.core.ConvertCmd
 import org.im4java.core.IMOperation
 import org.im4java.process.ProcessStarter
@@ -18,18 +21,21 @@ import javax.imageio.ImageIO
 import java.awt.Image
 import java.awt.image.BufferedImage
 
-import com.itextpdf.text.BaseColor
 import com.itextpdf.text.Document
-import com.itextpdf.text.DocumentException
-import com.itextpdf.text.Font
-import com.itextpdf.text.FontFactory
 import com.itextpdf.text.PageSize
-import com.itextpdf.text.Paragraph
-import com.itextpdf.text.pdf.PdfWriter
 import com.itextpdf.html2pdf.HtmlConverter
 
+import org.apache.pdfbox.contentstream.PDFStreamEngine
+import org.apache.pdfbox.contentstream.operator.Operator
+import org.apache.pdfbox.cos.COSBase
+import org.apache.pdfbox.cos.COSName
+
+import org.apache.pdfbox.pdmodel.graphics.PDXObject
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
+
 @CompileStatic
-class ImageService {
+class ImageService extends PDFStreamEngine {
 
     static {
         /**
@@ -53,6 +59,7 @@ class ImageService {
     static final int IMAGE_DENSITY = 300 // 96
     static final String DEFAULT_SUPPORTED_LANGUAGES = 'eng+ara+fra'
     static final long MIN_IMAGE_FILE_SIZE = 8192
+    private int imageNumber = 1
     final Logger log = LoggerFactory.getLogger(ImageService)
 
     Tesseract ocrEngine
@@ -64,25 +71,133 @@ class ImageService {
 //    final Path downloadsPath = baseDir.resolve(downloadsDir)
 
     @Inject
-    ImageService(){
+    ImageService() {
         this.ocrEngine = new Tesseract()
         this.ocrEngine.setTessVariable("user_defined_dpi", "${IMAGE_DENSITY}");
         this.ocrEngine.setDatapath(TESSERACT_DATA_PATH)
         this.ocrEngine.setLanguage(DEFAULT_SUPPORTED_LANGUAGES)
     }
 
-    File generateDocument(String fullText , String inputImage) throws FileNotFoundException, DocumentException {
+    @Override
+    protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
+        String operation = operator.name
+        if (operation == 'Do') {
+            COSName objectName = (COSName) operands.get(0)
+            PDXObject xObject = getResources().getXObject(objectName)
+            if (xObject instanceof PDImageXObject) {
+                PDImageXObject image = (PDImageXObject) xObject
+
+                // save image to local
+                BufferedImage bImage = image.getImage()
+                String extractedFile = "ExtractedImage_${imageNumber}.png"
+                File file = new File("${Constants.uploadPath}", extractedFile)
+                ImageIO.write(bImage, "PNG", file)
+                log.info("Image saved.")
+                imageNumber++
+
+            } else if (xObject instanceof PDFormXObject) {
+                PDFormXObject form = (PDFormXObject) xObject
+                showForm(form)
+            }
+        } else {
+            super.processOperator(operator, operands)
+        }
+    }
+    void ExtractImgFromPdf (File fileName){
+        PDDocument document = null
+        try {
+            document = PDDocument.load(fileName)
+            ImageService printer = new ImageService()
+            int pageNum = 0
+            document.pages.each { PDPage page ->
+                pageNum++
+                log.info( "Processing page: ${pageNum}" )
+                printer.processPage(page)
+            }
+        } catch (Exception e){
+            log.error("Cannot extract image from PDF (${e.getClass().simpleName}): ${e.message}")
+        } finally {
+            if ( document != null ) {
+                document.close()
+            }
+        }
+    }
+
+    int countImage(File fileName){
+        PDDocument doc = null
+        int countPages
+        try {
+            doc = PDDocument.load(fileName)
+            countPages = doc.getNumberOfPages()
+        } catch (Exception e){
+            log.error("Cannot count pages from PDF (${e.getClass().simpleName}): ${e.message}")
+        } finally {
+            if (doc){
+                doc.close()
+            }
+        }
+        return countPages
+    }
+    List<String> produceTextForMultipleImg(File inputFile){
+
+        int countPages = this.countImage(inputFile)
+        log.info("Number of pages: ${countPages}")
+        this.ExtractImgFromPdf(inputFile)
+        List<String> fullText = new ArrayList<String>()
+        for (int i = 0 ; i < countPages ; i++){
+            File extractedImg = new File("${Constants.uploadPath}","ExtractedImage_${i+1}.png")
+            String text = this.produceText(extractedImg)
+            fullText.add(text)
+            extractedImg.delete()
+        }
+        return fullText
+    }
+    File producePdfForMultipleImg(File inputFile){
+
+        File outputFile = null
+        try {
+            int countPages = this.countImage(inputFile)
+            log.info("Number of pages: ${countPages}")
+            this.ExtractImgFromPdf(inputFile)
+
+            PDFMergerUtility PDFmerger = new PDFMergerUtility()
+            //Setting the destination file path
+            outputFile = new File("${Constants.downloadPath}","${inputFile.name}")
+            PDFmerger.setDestinationFileName("${outputFile}")
+
+            for (int i = 1 ; i <= countPages ; i++){
+                File extractedImg = new File("${Constants.uploadPath}","ExtractedImage_${i}.png")
+                File outputPdf = this.producePdf(extractedImg,0)
+                extractedImg.delete()
+                //Loading an existing PDF document
+                File pdfFile = new File("${Constants.downloadPath}","${outputPdf.name}")
+                PDDocument document = PDDocument.load(pdfFile)
+                //adding the source files
+                PDFmerger.addSource(pdfFile)
+                //Merging the documents
+                PDFmerger.mergeDocuments(null)
+                document.close()
+            }
+            log.info("PDF Documents merged to a single file successfully")
+            deleteDocument(countPages)
+
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        }
+        return outputFile
+    }
+    File generateDocument(String fullText , String inputImage){
         Document document = null
         // Get a PdfWriter instance
         File doc = null
         try {
             document = new Document(PageSize.LETTER)
             //ex:image.jpg
-            String filewExt = inputImage.substring(inputImage.lastIndexOf('/') + 1)
+            String filewExt = inputImage.substring(inputImage.lastIndexOf('\\') + 1)
             //ex:image
             String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
-            log.info("${filewExt}")
-            log.info("${fileName}")
+            //log.info("${filewExt}")
+            //log.info("${fileName}")
 
             //we use this if the input File has File as a Type
             // String fileName = getFileNameWithoutExt(inputImage)+'.pdf'
@@ -343,6 +458,19 @@ class ImageService {
      */
     private static String getFileNameWithoutExt(File inputFile, String newExt = ''){
         return inputFile.name.with {it.take(it.lastIndexOf('.'))} +newExt
+    }
+    private void deleteDocument(int countPages){
+        for(int i = 1 ; i <= countPages ; i++){
+            File outputPdf = new File("${Constants.downloadPath}","ExtractedImage_${i}.pdf")
+            outputPdf.delete()
+        }
+    }
+    File renameFile(String filePath, String newFileName){
+        File outputFile = new File(filePath)
+        File newFile = new File("${outputFile.getParent()}\\${newFileName}${"."}${getImageExt(outputFile)}")
+        outputFile.renameTo("${newFile}")
+        println(newFile.path)
+        return newFile
     }
 
 }

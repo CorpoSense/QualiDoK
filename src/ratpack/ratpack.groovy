@@ -165,11 +165,18 @@ ratpack {
                          render(view('upload', [message:'You must create a server account.']))
                     } else {
                         String editedText = new String(node.get('payload').asText().toString().decodeBase64())
-                        String imagePath = node.get('inputImage').asText()
+                        println(editedText)
+                        String filePath = node.get('inputFile').asText()
+                        println(filePath)
                         String directoryId = node.get('directoryId').asText()
+                        println(directoryId)
                         String languageId = node.get('languageId').asText()
-                        log.info("editedText: ${editedText}, imagePath: ${imagePath}, directoryId: ${directoryId}, languageId: ${languageId}")
-                        File outputFile = imageService.generateDocument(new String(editedText),imagePath)
+                        println(languageId)
+                        String fileNameId = node.get('fileNameId').asText()
+                        println(fileNameId)
+                        log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
+                        File outputDoc = imageService.generateDocument(new String(editedText),filePath)
+                        File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
                         uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
                             if (result){
                                 log.info("file: ${outputFile.name} has been uploaded.")
@@ -177,18 +184,19 @@ ratpack {
                                 log.info("file cannot be uploaded.")
                             }
                         }
-                        return json(['editedText': editedText ,
-                                      'imagePath': imagePath ,
+                        json(['editedText': editedText ,
+                                      'imagePath': filePath ,
                                       'directoryId': directoryId ,
-                                      'languageId': languageId])
+                                      'languageId': languageId ,
+                                     'fileNameId':fileNameId])
                     }    
                 })
             })
         
         }
         post('uploadDoc'){ 
-             UploadService uploadService, AccountService accountService ->
-                render( parse(jsonNode()).map { def node ->
+             UploadService uploadService, AccountService accountService, ImageService imageService  ->
+                render( parse(jsonNode()).map { JsonNode node ->
                     accountService.getActive().then({ List<Account> accounts ->
                         Account account = accounts[0]
                         if (accounts.isEmpty() || !account){
@@ -197,11 +205,9 @@ ratpack {
                             String directoryId = node.get('directoryId').asText()
                             String languageId = node.get('languageId').asText()
                             String filePath = node.get('outputFile').asText()
-
-                            log.info("filePath: ${filePath},directoryId: ${directoryId},languageId:${languageId}")
-
-                            File outputFile = new File(filePath)
-
+                            String fileNameId = node.get('fileNameId').asText()
+                            log.info("filePath: ${filePath},directoryId: ${directoryId},languageId:${languageId},fileNameId: ${fileNameId}")
+                            File outputFile = imageService.renameFile(filePath,fileNameId)
                             uploadService.uploadFile(outputFile, 
                                                      account.url, 
                                                      directoryId,
@@ -213,9 +219,10 @@ ratpack {
                                 }
 
                             }
-                            Jackson.json(['directoryId': directoryId , 
+                            return json(['directoryId': directoryId ,
                                           'filePath': filePath , 
-                                          'languageId': languageId])
+                                          'languageId': languageId,
+                                         'fileNameId': fileNameId])
                         }
                     })
                 })
@@ -273,7 +280,26 @@ ratpack {
 //                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
                                                 if (fileType.contains('pdf')){
                                                     // Handle PDF document...
-                                                    render(view('preview', ['message':'This is a PDF document']))
+                                                    List<String> fullText = imageService.produceTextForMultipleImg(inputFile)
+                                                    // List of directories
+                                                    def folderId = request.queryParams['folderId']?: FOLDER_ID
+                                                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                    client.get(uri){ RequestSpec reqSpec ->
+                                                        reqSpec.basicAuth(account.username, account.password)
+                                                        reqSpec.headers.set ("Accept", 'application/json')
+                                                    }.then { ReceivedResponse res ->
+
+                                                        JsonSlurper jsonSlurper = new JsonSlurper()
+                                                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                        render(view('preview', [
+                                                                'message': (fullText? 'Image processed successfully.':'No output can be found.'),
+                                                                'inputPdfFile': inputFile.path,
+                                                                'fullText': fullText,
+                                                                'directories' : directories
+                                                                //'detectedLanguage': detectedLanguage
+                                                        ]))
+                                                    }
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document
                                                     String fullText = imageService.produceText(inputFile)
@@ -317,7 +343,26 @@ ratpack {
 //                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
                                                 if (fileType.contains('pdf')){
                                                     // Handle PDF document...
-                                                    render(view('preview', ['message':'This is a PDF document']))
+                                                    File outputFile = imageService.producePdfForMultipleImg(inputFile)
+                                                    // List of directories
+                                                    def folderId = request.queryParams['folderId']?: FOLDER_ID
+                                                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                    client.get(uri){ RequestSpec reqSpec ->
+                                                        reqSpec.basicAuth(account.username, account.password)
+                                                        reqSpec.headers.set ("Accept", 'application/json')
+                                                    }.then { ReceivedResponse res ->
+                                                        JsonSlurper jsonSlurper = new JsonSlurper()
+                                                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                        render(view('preview', [
+                                                                'message': ('Document generated successfully.'),
+                                                                'inputPdfFile': inputFile.path,
+                                                                'outputFile': outputFile,
+                                                                'directories' : directories
+                                                                //'detectedLanguage': detectedLanguage
+                                                        ]))
+                                                    }
+
                                                 } else if (SUPPORTED_IMAGES.any {fileType.contains(it)}){
                                                     // Handle image document (TODO: make visibleImageLayer dynamic)
                                                     File outputFile = imageService.producePdf(inputFile, 0)

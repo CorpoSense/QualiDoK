@@ -132,51 +132,67 @@ $("#edit").click(function(){
 });
 
 $("#save").click(function(){
-    var encodedText = $('.summernote').code();
-    $('.summernote').destroy();
-    var imagePath = $('#uploadedImage').attr('src');
-    var directoryId = $('#folderId').val();
-    var languageId = $('#languageId').val();
 
-    var aMyUTF8Input = strToUTF8Arr(encodedText);
-    var encodedPayload = base64EncArr(aMyUTF8Input);
+     var encodedText = $('.summernote').code();
+     $('.summernote').destroy();
 
-    $("#save").attr('disabled', 'disabled');
+     if ($('#uploadedImage').attr('src') == null) {
+        var filePath = $('#inputPdfFile').attr('src');
+     }else {
+        var filePath = $('#uploadedImage').attr('src');
+     }
 
-    var loading = $('#loading');
-    loading.show();
+     var directoryId = $('#folderId').val();
+     var languageId = $('#languageId').val();
+     var fileNameId = $('#fileNameId').val();
+
+     console.log('Full text:\n '+ encodedText,
+                            '\n file path: '+filePath ,
+                            '\n Directory chosen: '+ directoryId ,
+                            '\n languageId: '+languageId,
+                            '\n file name: '+fileNameId);
+
+
+var aMyUTF8Input = strToUTF8Arr(encodedText);
+var encodedPayload = base64EncArr(aMyUTF8Input);
+
+
+  var loading = $('#loading');
+  loading.show();
 
   $.ajax({
         url: 'save',
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({'payload': encodedPayload ,
-                              'inputImage': imagePath ,
+                              'inputFile': filePath ,
                               'directoryId': directoryId ,
-                              'languageId': languageId })}
-        ).success(function (data) {
+                              'languageId': languageId ,
+                              'fileNameId': fileNameId}),
+        success: function (data) {
             console.log(data);
-            $('#msg-success').removeClass('hidden');
-        })
-        .error(function(jqXHR, errMsg) {
-            console.log(errMsg);
-            $('#msg-failure').removeClass('hidden');
-        })
-        .always(function(jqXHR, status){
             loading.hide();
+            $('#msg-success').removeClass('hidden');
+        },
+        error: function(jqXHR, errMsg) {
+            console.log(errMsg);
+            loading.hide();
+            $('#msg-failure').removeClass('hidden');
+        },
+        always: function(jqXHR, status){
             $("#save").removeAttr('disabled');
-        })
+        }
+  });
 });
 
-
 $("#upload").click(function(){
-    console.log('upload...');
     var outputFile = $('#outputFile').attr('src');
     var directoryId = $('#folderId').val();
     var languageId = $('#languageId').val();
+    var fileNameId = $('#fileNameId').val();
     var loading = $('#loading');
     loading.show();
-    console.log('folderId\n'+directoryId, 'languageId\n'+languageId, 'outputFile\n'+outputFile);
+
     $('#msg-success').addClass('hidden');
     $('#msg-failure').addClass('hidden');
     $.ajax({
@@ -185,17 +201,16 @@ $("#upload").click(function(){
         contentType: 'application/json',
         data: JSON.stringify({'directoryId': directoryId ,
                               'languageId': languageId,
-                              'outputFile':outputFile }),
+                              'outputFile':outputFile,
+                              'fileNameId':fileNameId }),
         success: function (data) {
             console.log(data);
             $('#msg-success').removeClass('hidden');
         },
         error: function(jqXHR, errMsg) {
             console.log(errMsg);
-            $('#msg-failure').removeClass('hidden');
-        },
-        always: function(jqXHR, status){
             loading.hide();
+            $('#msg-failure').removeClass('hidden');
         }
   });
 });

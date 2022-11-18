@@ -16,6 +16,15 @@
             border: 1px gray solid;
             padding: 15px;
             background-color: white;
+            height: 450px;
+            min-height: 450px;
+            max-height: 450px !important;
+            overflow-y: auto;
+        }
+        .img-responsive {
+            display: block;
+            max-width: 100%;
+            height: 500px;
         }
     </style>
 </head>
@@ -47,56 +56,58 @@
                             </li>
                         </ul>
 
-
                         <div th:if="${fullText} != null" id="tab-content" class="tab-content">
                             <div class="tab-pane in fade active" id="preview-output">
                                 <div class="summernote" th:text="${fullText}"></div>
-                                <input type="hidden" id="directoryId" th:value="${directoryId}">
-                                <input type="hidden" id="language" th:value="${language}">                              
                             </div>
-                            
+
                         </div>
-<!--                        <div class="alert alert-info" th:if="${detectedLanguage} != null">-->
-<!--                            <p>Detected text: <strong th:text="${detectedLanguage}"></strong></p>-->
-<!--                        </div>--> 
+                        <!-- <div class="alert alert-info" th:if="${detectedLanguage} != null">-->
+                        <!-- <p>Detected text: <strong th:text="${detectedLanguage}"></strong></p>-->
+                        <!-- </div>-->
 
                         <div th:if="${fullText} != null" class="form-options">
-                          <div class="form-group pull-left">
-                              <button id="edit" class="btn btn-primary" type="button">Edit</button>
-                          </div>
+                            <div class="form-group pull-left">
+                                <button id="edit" class="btn btn-primary" type="button">Edit</button>
+                            </div>
                         </div><!-- .form-options -->
 
+
                         <div th:if="${outputFile} != null" class="tab-content">
-                          <div class="tab-pane active">
-                              <embed id="outputFile" th:src="${outputFile}" type="application/pdf" width="100%" height="500px" />  
-                          </div>
+                            <div class="tab-pane active">
+                                <embed id="outputFile" th:src="${outputFile}" type="application/pdf" width="100%" height="500px" />
+                            </div>
                         </div>
 
 
                         <br><br>
                         <h2>Options:</h2>
                         <div class="form-group">
-                          <label for="folderId">Select a directory:</label>
-                          <select id="folderId" name="folderId" class="form-control">
-                              <tr th:each="directory : ${directories}">
-                                  <option th:value="${directory.id}"><p th:text="${directory.name}"></p></option>
-                              </tr>
-                          </select>
+                            <label for="folderId">Select a directory:</label>
+                            <select id="folderId" name="folderId" class="form-control">
+                                <tr th:each="directory : ${directories}">
+                                    <option th:value="${directory.id}"><p th:text="${directory.name}"></p></option>
+                                </tr>
+                            </select>
                         </div>
                         <div class="form-group">
-                          <label for="language">Language:</label>
-                          <select id="languageId" name="language" class="form-control">
-                              <option th:value="en"><P th:text="English"></P></option>
-                              <option th:value="fr"><P th:text="French"></P></option>
-                              <option th:value="ar"><P th:text="Arabic"></P></option>
-                          </select>
+                            <label for="languageId">Language:</label>
+                            <select id="languageId" name="language" class="form-control">
+                                <option th:value="en"><P th:text="English"></P></option>
+                                <option th:value="fr"><P th:text="French"></P></option>
+                                <option th:value="ar"><P th:text="Arabic"></P></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fileNameId">file name:</label>
+                            <input type="text" id="fileNameId" name="fileName" required >
                         </div>
 
                         <div id="loading" style="display: none;">
-                          <img th:src="@{/assets/images/loading.gif}" />
-                          <p>Upload document... (please wait)</p>
-                         </div>
-                        
+                            <img th:src="@{/assets/images/loading.gif}" />
+                            <p>Upload document... (please wait)</p>
+                        </div>
+
                         <div th:if="${fullText} != null" class="form-options">
                             <div class="form-group pull-left">
                                 <button id="save" class="btn btn-primary" type="button">Save</button>
@@ -110,31 +121,34 @@
                         </div><!-- .form-options -->
 
                     </div>
-
-
-
                 </div><!-- .col-md-6 -->
+
                 <div class="col-md-6">
                     <!--<div align="left" style="width: 100%;">-->
                     <!-- <embed th:src="${fullpath2}" type="application/pdf" width="100%" height="500px" />-->
                     <!--</div>-->
-                        <ul class="nav nav-tabs">
-                            <li class="active">
-                                <a href="#preview-document" data-toggle="tab">Original Document</a>
-                            </li>
-                        </ul>
-                        <!-- <input id="lang" type="hidden value="fr"> -->
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="#preview-document" data-toggle="tab">Original Document</a>
+                        </li>
+                    </ul>
+                    <!-- <input id="lang" type="hidden value="fr"> -->
+                    <div th:if="${inputImage} != null" class="tab-content">
                         <img class="img-responsive" id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
+                    </div>
+                    <div th:if="${inputPdfFile} != null" class="tab-content">
+                        <embed id="inputPdfFile" th:src="${inputPdfFile}" type="application/pdf" width="100%" height="500px" />
+                    </div>
                 </div><!-- .col-md-6 -->
             </div><!-- .row -->
-           
-            <div class="alert alert-success hidden" id="msg-success"> 
-                <p>Document uploaded successfully.</p>    
+
+            <div class="alert alert-success hidden" id="msg-success">
+                <p>Document uploaded successfully.</p>
             </div>
-            <div class="alert alert-danger hidden" id="msg-failure"> 
-              <p>Error uploading document</p>    
+            <div class="alert alert-danger hidden" id="msg-failure">
+                <p>Error uploading document</p>
             </div>
-            
+
 
         </div><!-- .col-md-12 -->
     </div><!-- .row -->
