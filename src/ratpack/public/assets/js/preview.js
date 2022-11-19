@@ -146,19 +146,11 @@ $("#save").click(function(){
      var languageId = $('#languageId').val();
      var fileNameId = $('#fileNameId').val();
 
-     console.log('Full text:\n '+ encodedText,
-                            '\n file path: '+filePath ,
-                            '\n Directory chosen: '+ directoryId ,
-                            '\n languageId: '+languageId,
-                            '\n file name: '+fileNameId);
+    var aMyUTF8Input = strToUTF8Arr(encodedText);
+    var encodedPayload = base64EncArr(aMyUTF8Input);
 
-
-var aMyUTF8Input = strToUTF8Arr(encodedText);
-var encodedPayload = base64EncArr(aMyUTF8Input);
-
-
-  var loading = $('#loading');
-  loading.show();
+    var loading = $('#loading');
+    loading.show();
 
   $.ajax({
         url: 'save',

@@ -165,16 +165,11 @@ ratpack {
                          render(view('upload', [message:'You must create a server account.']))
                     } else {
                         String editedText = new String(node.get('payload').asText().toString().decodeBase64())
-                        println(editedText)
                         String filePath = node.get('inputFile').asText()
-                        println(filePath)
                         String directoryId = node.get('directoryId').asText()
-                        println(directoryId)
                         String languageId = node.get('languageId').asText()
-                        println(languageId)
                         String fileNameId = node.get('fileNameId').asText()
-                        println(fileNameId)
-                        log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
+                        //log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
                         File outputDoc = imageService.generateDocument(new String(editedText),filePath)
                         File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
                         uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
@@ -206,7 +201,7 @@ ratpack {
                             String languageId = node.get('languageId').asText()
                             String filePath = node.get('outputFile').asText()
                             String fileNameId = node.get('fileNameId').asText()
-                            log.info("filePath: ${filePath},directoryId: ${directoryId},languageId:${languageId},fileNameId: ${fileNameId}")
+                            //log.info("filePath: ${filePath},directoryId: ${directoryId},languageId:${languageId},fileNameId: ${fileNameId}")
                             File outputFile = imageService.renameFile(filePath,fileNameId)
                             uploadService.uploadFile(outputFile, 
                                                      account.url, 
