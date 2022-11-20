@@ -129,80 +129,97 @@ $("#edit").click(function(){
     $("#save").removeAttr("disabled"); // removing attribute
     $('#msg-success').addClass('hidden');
     $('#msg-failure').addClass('hidden');
+    $('#msg-warning').addClass('hidden');
 });
 
 $("#save").click(function(){
+     if(!$.trim($('#fileNameId').val()).length){ // zero-length string AFTER a trim
+        $('#msg-warning').removeClass('hidden');
+        $('#msg-success').addClass('hidden');
+        $('#msg-failure').addClass('hidden');
+     }else{
+         $('#msg-warning').addClass('hidden');
+         var encodedText = $('.summernote').code();
+          $('.summernote').destroy();
 
-     var encodedText = $('.summernote').code();
-     $('.summernote').destroy();
+          if ($('#uploadedImage').attr('src') == null) {
+             var filePath = $('#inputPdfFile').attr('src');
+          }else {
+             var filePath = $('#uploadedImage').attr('src');
+          }
 
-     if ($('#uploadedImage').attr('src') == null) {
-        var filePath = $('#inputPdfFile').attr('src');
-     }else {
-        var filePath = $('#uploadedImage').attr('src');
+          var directoryId = $('#folderId').val();
+          var languageId = $('#languageId').val();
+          var fileNameId = $('#fileNameId').val();
+         var aMyUTF8Input = strToUTF8Arr(encodedText);
+         var encodedPayload = base64EncArr(aMyUTF8Input);
+
+         var loading = $('#loading');
+         loading.show();
+
+       $.ajax({
+             url: 'save',
+             type: 'POST',
+             contentType: 'application/json',
+             data: JSON.stringify({'payload': encodedPayload ,
+                                   'inputFile': filePath ,
+                                   'directoryId': directoryId ,
+                                   'languageId': languageId ,
+                                   'fileNameId': fileNameId}),
+             success: function (data) {
+                 console.log(data);
+                 loading.hide();
+                 $('#msg-success').removeClass('hidden');
+             },
+             error: function(jqXHR, errMsg) {
+                 console.log(errMsg);
+                 loading.hide();
+                 $('#msg-failure').removeClass('hidden');
+             },
+             always: function(jqXHR, status){
+                 $("#save").removeAttr('disabled');
+             }
+       });
      }
-
-     var directoryId = $('#folderId').val();
-     var languageId = $('#languageId').val();
-     var fileNameId = $('#fileNameId').val();
-
-    var aMyUTF8Input = strToUTF8Arr(encodedText);
-    var encodedPayload = base64EncArr(aMyUTF8Input);
-
-    var loading = $('#loading');
-    loading.show();
-
-  $.ajax({
-        url: 'save',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({'payload': encodedPayload ,
-                              'inputFile': filePath ,
-                              'directoryId': directoryId ,
-                              'languageId': languageId ,
-                              'fileNameId': fileNameId}),
-        success: function (data) {
-            console.log(data);
-            loading.hide();
-            $('#msg-success').removeClass('hidden');
-        },
-        error: function(jqXHR, errMsg) {
-            console.log(errMsg);
-            loading.hide();
-            $('#msg-failure').removeClass('hidden');
-        },
-        always: function(jqXHR, status){
-            $("#save").removeAttr('disabled');
-        }
-  });
 });
 
 $("#upload").click(function(){
-    var outputFile = $('#outputFile').attr('src');
-    var directoryId = $('#folderId').val();
-    var languageId = $('#languageId').val();
-    var fileNameId = $('#fileNameId').val();
-    var loading = $('#loading');
-    loading.show();
+      if(!$.trim($('#fileNameId').val()).length){ // zero-length string AFTER a trim
+          $('#msg-warning').removeClass('hidden');
+          $('#msg-success').addClass('hidden');
+          $('#msg-failure').addClass('hidden');
+      }else{
+            var outputFile = $('#outputFile').attr('src');
+            var directoryId = $('#folderId').val();
+            var languageId = $('#languageId').val();
+            var fileNameId = $('#fileNameId').val();
+            var loading = $('#loading');
+            loading.show();
+            $('#msg-warning').removeClass('hidden');
+            $('#msg-success').addClass('hidden');
+            $('#msg-failure').addClass('hidden');
+            $.ajax({
+                url: 'uploadDoc',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({'directoryId': directoryId ,
+                                      'languageId': languageId,
+                                      'outputFile':outputFile,
+                                      'fileNameId':fileNameId }),
+                success: function (data) {
+                    console.log(data);
+                    $('#msg-success').removeClass('hidden');
+                    $('#msg-warning').addClass('hidden');
+                    $("#upload").prop("disabled", true);
+                },
+                error: function(jqXHR, errMsg) {
+                    console.log(errMsg);
+                    loading.hide();
+                    $('#msg-failure').removeClass('hidden');
+                    $('#msg-warning').addClass('hidden');
+                    $("#upload").prop("disabled", true);
+                }
+            });
+      }
 
-    $('#msg-success').addClass('hidden');
-    $('#msg-failure').addClass('hidden');
-    $.ajax({
-        url: 'uploadDoc',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({'directoryId': directoryId ,
-                              'languageId': languageId,
-                              'outputFile':outputFile,
-                              'fileNameId':fileNameId }),
-        success: function (data) {
-            console.log(data);
-            $('#msg-success').removeClass('hidden');
-        },
-        error: function(jqXHR, errMsg) {
-            console.log(errMsg);
-            loading.hide();
-            $('#msg-failure').removeClass('hidden');
-        }
-  });
 });
