@@ -193,7 +193,7 @@ class ImageService extends PDFStreamEngine {
         try {
             document = new Document(PageSize.LETTER)
             //ex:image.jpg
-            String filewExt = inputImage.substring(inputImage.lastIndexOf('\\') + 1)
+            String filewExt = inputImage.substring(inputImage.lastIndexOf('/') + 1)
             //ex:image
             String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
             //log.info("${filewExt}")
