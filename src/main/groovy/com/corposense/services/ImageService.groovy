@@ -467,7 +467,7 @@ class ImageService extends PDFStreamEngine {
     }
     File renameFile(String filePath, String newFileName){
         File outputFile = new File(filePath)
-        File newFile = new File("${outputFile.getParent()}\\${newFileName}${"."}${getImageExt(outputFile)}")
+        File newFile = new File("${outputFile.getParent()}/${newFileName}${"."}${getImageExt(outputFile)}")
         outputFile.renameTo("${newFile}")
         println(newFile.path)
         return newFile
