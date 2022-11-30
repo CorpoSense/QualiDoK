@@ -469,7 +469,6 @@ class ImageService extends PDFStreamEngine {
         File outputFile = new File(filePath)
         File newFile = new File("${outputFile.getParent()}"+File.separator+"${newFileName}${"."}${getImageExt(outputFile)}")
         outputFile.renameTo("${newFile}")
-        println(newFile.path)
         return newFile
     }
 

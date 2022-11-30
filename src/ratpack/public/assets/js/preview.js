@@ -208,6 +208,7 @@ $("#upload").click(function(){
                                       'fileNameId':fileNameId }),
                 success: function (data) {
                     console.log(data);
+                    loading.hide();
                     $('#msg-success').removeClass('hidden');
                     $('#msg-warning').addClass('hidden');
                     $("#upload").prop("disabled", true);
