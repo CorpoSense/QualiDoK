@@ -155,40 +155,119 @@ ratpack {
         get('preview'){
             render(view('preview'))
         }
+        prefix('save'){
+            path{
+                byMethod {
+                    post { ImageService imageService, UploadService uploadService, AccountService accountService ->
 
-        post('save'){ ImageService imageService, UploadService uploadService, AccountService accountService ->
-        
-            render( parse(jsonNode()).map { JsonNode node ->
-                accountService.getActive().then({ List<Account> accounts ->
-                    Account account = accounts[0]
-                    if (accounts.isEmpty() || !account){
-                         render(view('upload', [message:'You must create a server account.']))
-                    } else {
-                        String editedText = new String(node.get('payload').asText().toString().decodeBase64())
-                        String filePath = node.get('inputFile').asText()
-                        String directoryId = node.get('directoryId').asText()
-                        String languageId = node.get('languageId').asText()
-                        String fileNameId = node.get('fileNameId').asText()
-                        //log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
-                        File outputDoc = imageService.generateDocument(new String(editedText),filePath)
-                        File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
-                        uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
-                            if (result){
-                                log.info("file: ${outputFile.name} has been uploaded.")
-                            } else {
-                                log.info("file cannot be uploaded.")
-                            }
-                        }
-                        json(['editedText': editedText ,
-                                      'imagePath': filePath ,
-                                      'directoryId': directoryId ,
-                                      'languageId': languageId ,
-                                     'fileNameId':fileNameId])
-                    }    
-                })
-            })
-        
+                        render( parse(jsonNode()).map { JsonNode node ->
+                            accountService.getActive().then({ List<Account> accounts ->
+                                Account account = accounts[0]
+                                if (accounts.isEmpty() || !account){
+                                    render(view('upload', [message:'You must create a server account.']))
+                                } else {
+                                    String editedText = new String(node.get('payload').asText().toString().decodeBase64())
+                                    String filePath = node.get('inputFile').asText()
+                                    String directoryId = node.get('directoryId').asText()
+                                    String languageId = node.get('languageId').asText()
+                                    String fileNameId = node.get('fileNameId').asText()
+                                    //log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
+                                    File outputDoc = imageService.generateDocument(new String(editedText),filePath)
+                                    File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
+                                    uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
+                                        if (result){
+                                            log.info("file: ${outputFile.name} has been uploaded.")
+                                        } else {
+                                            log.info("file cannot be uploaded.")
+                                        }
+                                    }
+                                    return json(['editedText': editedText ,
+                                                 'imagePath': filePath ,
+                                                 'directoryId': directoryId ,
+                                                 'languageId': languageId ,
+                                                 'fileNameId':fileNameId])
+                                }
+                            })
+                        })
+
+                    }
+                }
+            }
         }
+
+        path{
+            byMethod {
+                post { ImageService imageService, UploadService uploadService, AccountService accountService ->
+
+                    render( parse(jsonNode()).map { JsonNode node ->
+                        accountService.getActive().then({ List<Account> accounts ->
+                            Account account = accounts[0]
+                            if (accounts.isEmpty() || !account){
+                                render(view('upload', [message:'You must create a server account.']))
+                            } else {
+                                String editedText = new String(node.get('payload').asText().toString().decodeBase64())
+                                String filePath = node.get('inputFile').asText()
+                                String directoryId = node.get('directoryId').asText()
+                                String languageId = node.get('languageId').asText()
+                                String fileNameId = node.get('fileNameId').asText()
+                                //log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
+                                File outputDoc = imageService.generateDocument(new String(editedText),filePath)
+                                File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
+                                uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
+                                    if (result){
+                                        log.info("file: ${outputFile.name} has been uploaded.")
+                                    } else {
+                                        log.info("file cannot be uploaded.")
+                                    }
+                                }
+                                return json(['editedText': editedText ,
+                                             'imagePath': filePath ,
+                                             'directoryId': directoryId ,
+                                             'languageId': languageId ,
+                                             'fileNameId':fileNameId])
+                            }
+                        })
+                    })
+
+                }
+            }
+        }
+
+
+
+//        post('save'){ ImageService imageService, UploadService uploadService, AccountService accountService ->
+//
+//            render( parse(jsonNode()).map { JsonNode node ->
+//                accountService.getActive().then({ List<Account> accounts ->
+//                    Account account = accounts[0]
+//                    if (accounts.isEmpty() || !account){
+//                         render(view('upload', [message:'You must create a server account.']))
+//                    } else {
+//                        String editedText = new String(node.get('payload').asText().toString().decodeBase64())
+//                        String filePath = node.get('inputFile').asText()
+//                        String directoryId = node.get('directoryId').asText()
+//                        String languageId = node.get('languageId').asText()
+//                        String fileNameId = node.get('fileNameId').asText()
+//                        //log.info("editedText: ${editedText}, filePath: ${filePath}, directoryId: ${directoryId}, languageId: ${languageId},fileNameId: ${fileNameId}")
+//                        File outputDoc = imageService.generateDocument(new String(editedText),filePath)
+//                        File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
+//                        uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
+//                            if (result){
+//                                log.info("file: ${outputFile.name} has been uploaded.")
+//                            } else {
+//                                log.info("file cannot be uploaded.")
+//                            }
+//                        }
+//                        return json(['editedText': editedText ,
+//                                      'imagePath': filePath ,
+//                                      'directoryId': directoryId ,
+//                                      'languageId': languageId ,
+//                                     'fileNameId':fileNameId])
+//                    }
+//                })
+//            })
+//
+//        }
         post('uploadDoc'){ 
              UploadService uploadService, AccountService accountService, ImageService imageService  ->
                 render( parse(jsonNode()).map { JsonNode node ->

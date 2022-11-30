@@ -193,7 +193,7 @@ class ImageService extends PDFStreamEngine {
         try {
             document = new Document(PageSize.LETTER)
             //ex:image.jpg
-            String filewExt = inputImage.substring(inputImage.lastIndexOf('/') + 1)
+            String filewExt = inputImage.substring(inputImage.lastIndexOf(File.separator) + 1)
             //ex:image
             String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
             //log.info("${filewExt}")
@@ -467,7 +467,7 @@ class ImageService extends PDFStreamEngine {
     }
     File renameFile(String filePath, String newFileName){
         File outputFile = new File(filePath)
-        File newFile = new File("${outputFile.getParent()}/${newFileName}${"."}${getImageExt(outputFile)}")
+        File newFile = new File("${outputFile.getParent()}"+File.separator+"${newFileName}${"."}${getImageExt(outputFile)}")
         outputFile.renameTo("${newFile}")
         println(newFile.path)
         return newFile
