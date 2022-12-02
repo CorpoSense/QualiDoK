@@ -82,6 +82,7 @@
                                         <tr th:each="directory : ${directories}">
                                             <option th:value="${directory.id}"><p th:text="${directory.name}"></p></option>
                                         </tr>
+                                        <option value="4">Default folder</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -94,7 +95,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="fileNameId" class="form-label">File name:</label>
-                                    <input type="text" class="form-control" id="fileNameId" required>
+                                    <input type="text" th:value="${fileName}" class="form-control" id="fileNameId" required>
                                 </div>
                             </div>
                         </div>

@@ -254,6 +254,7 @@ ratpack {
                                             case 'extract-text':
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
                                                 uploadedFile.writeTo(inputFile.newOutputStream())
+                                                String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                 log.info("File type: ${fileType}")
                                                 // TODO: support doc, docx document
 //                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
@@ -274,6 +275,7 @@ ratpack {
                                                         render(view('preview', [
                                                                 'message': (fullText? 'Image processed successfully.':'No output can be found.'),
                                                                 'inputPdfFile': inputFile.path,
+                                                                'fileName': fileName,
                                                                 'fullText': fullText,
                                                                 'directories' : directories
                                                                 //'detectedLanguage': detectedLanguage
@@ -302,6 +304,7 @@ ratpack {
                                                     render(view('preview', [
                                                             'message': (fullText? 'Image processed successfully.':'No output can be found.'),
                                                             'inputImage': inputFile.path,
+                                                            'fileName': fileName,
                                                             'fullText': fullText,
                                                             'directories' : directories
 //                                                           'detectedLanguage': detectedLanguage
@@ -317,6 +320,7 @@ ratpack {
 
                                                 File inputFile = new File("${uploadPath}", uploadedFile.fileName)
                                                 uploadedFile.writeTo(inputFile.newOutputStream())
+                                                String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                 log.info("File type: ${fileType}")
                                                 // TODO: support doc, docx document
 //                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
@@ -336,6 +340,7 @@ ratpack {
                                                         render(view('preview', [
                                                                 'message': ('Document generated successfully.'),
                                                                 'inputPdfFile': inputFile.path,
+                                                                'fileName': fileName,
                                                                 'outputFile': outputFile,
                                                                 'directories' : directories
                                                                 //'detectedLanguage': detectedLanguage
@@ -359,6 +364,7 @@ ratpack {
                                                         render(view('preview', [
                                                                 'message':'Document generated successfully.',
                                                                 'inputImage': inputFile.path,
+                                                                'fileName': fileName,
                                                                 'outputFile': outputFile.path,
                                                                 'directories': directories
                                                         ]))

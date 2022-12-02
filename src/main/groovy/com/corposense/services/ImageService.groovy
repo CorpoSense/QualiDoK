@@ -456,7 +456,7 @@ class ImageService extends PDFStreamEngine {
      * @param newExt New extension (must include '.' sign)
      * @return
      */
-    private static String getFileNameWithoutExt(File inputFile, String newExt = ''){
+    String getFileNameWithoutExt(File inputFile, String newExt = ''){
         return inputFile.name.with {it.take(it.lastIndexOf('.'))} +newExt
     }
     private void deleteDocument(int countPages){
