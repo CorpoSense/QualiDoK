@@ -18,7 +18,8 @@ class UploadService {
            request.auth.basic 'admin', 'admin' //this.server.username, this.server.password
 //           request.contentType = 'application/json'
        }.post {
-          request.uri.path = '/logicaldoc/services/rest/document/upload'
+          request.uri.path = System.getenv('GITPOD_HOST')?'/services/rest/document/upload':
+                                                                '/logicaldoc/services/rest/document/upload'
           request.contentType = 'multipart/form-data'
           request.body = MultipartContent.multipart {
             field 'folderId', "${folderId}"
