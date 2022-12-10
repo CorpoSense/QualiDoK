@@ -94,8 +94,8 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="fileNameId" class="form-label">File name:</label>
-                                    <input type="text" th:value="${fileName}" class="form-control" id="fileNameId" required>
+                                    <label for="fileNameId" class="form-label">File name (PDF):</label>
+                                    <input type="text" th:value="${fileName}" class="form-control" id="fileNameId" placeholder="File name without extension" required>
                                 </div>
                             </div>
                         </div>
@@ -130,7 +130,7 @@
                     </ul>
                     <!-- <input id="lang" type="hidden value="fr"> -->
                     <div th:if="${inputImage} != null" class="tab-content">
-                        <img class="img-responsive" id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
+                        <img id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
                     </div>
                     <div th:if="${inputPdfFile} != null" class="tab-content">
                         <embed id="inputPdfFile" th:src="${inputPdfFile}" type="application/pdf" width="100%" height="500px" />
