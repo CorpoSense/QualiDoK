@@ -4,6 +4,7 @@ import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
 import com.corposense.ocr.ImageConverter
 import com.corposense.ratpack.Ocr.OcrChain
+import com.corposense.ratpack.Ocr.SaveEditedTextChain
 import com.corposense.services.AccountService
 import com.corposense.services.ImageService
 import com.corposense.services.UploadService
@@ -65,6 +66,7 @@ ratpack {
         bind(ImageService)
         bindInstance(Service, new ConnectionInitializer())
         bind(OcrChain)
+        bind(SaveEditedTextChain)
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
@@ -122,38 +124,12 @@ ratpack {
                 }
             })
         }
-       
+
         get('preview'){
             render(view('preview'))
         }
 
-
-        post('save') { ImageService imageService, UploadService uploadService, AccountService accountService ->
-            render( parse(jsonNode()).map { JsonNode node ->
-                String editedText = new String(node.get('payload').asText().toString().decodeBase64())
-                String filePath = node.get('inputFile').asText()
-                String directoryId = node.get('directoryId').asText()
-                String languageId = node.get('languageId').asText()
-                String fileNameId = node.get('fileNameId').asText()
-                File outputDoc = imageService.generateDocument(new String(editedText),filePath)
-                File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
-                accountService.getActive().then({ List<Account> accounts ->
-                    Account account = accounts[0]
-                    uploadService.uploadFile(outputFile,account.url, directoryId, languageId).then { Boolean result ->
-                        if (result){
-                            log.info("file: ${outputFile.name} has been uploaded.")
-                        } else {
-                            log.info("file cannot be uploaded.")
-                        }
-                    }
-                })
-                return json(['editedText': editedText ,
-                             'imagePath': filePath ,
-                             'directoryId': directoryId ,
-                             'languageId': languageId ,
-                             'fileNameId':fileNameId])
-            })
-        }
+        all(chain(registry.get(SaveEditedTextChain)))
 
         post('uploadDoc'){ 
              UploadService uploadService, AccountService accountService, ImageService imageService  ->
@@ -189,7 +165,7 @@ ratpack {
         }
 
         prefix('upload') {
-            all chain(OcrChain)
+            all chain(registry.get(OcrChain))
         }
 
         prefix('server') {
