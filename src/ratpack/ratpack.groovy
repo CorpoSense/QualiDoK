@@ -5,6 +5,7 @@ import com.corposense.models.Account
 import com.corposense.ocr.ImageConverter
 import com.corposense.ratpack.Ocr.OcrChain
 import com.corposense.ratpack.Ocr.SaveEditedTextChain
+import com.corposense.ratpack.Ocr.UploadDocChain
 import com.corposense.services.AccountService
 import com.corposense.services.ImageService
 import com.corposense.services.UploadService
@@ -61,12 +62,10 @@ ratpack {
         })
         bind(H2ConnectionDataSource)
         bind(AccountService)
-        bind(UploadService)
-        bind(ImageConverter)
-        bind(ImageService)
         bindInstance(Service, new ConnectionInitializer())
         bind(OcrChain)
         bind(SaveEditedTextChain)
+        bind(UploadDocChain)
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
@@ -131,30 +130,7 @@ ratpack {
 
         all(chain(registry.get(SaveEditedTextChain)))
 
-        post('uploadDoc'){ 
-             UploadService uploadService, AccountService accountService, ImageService imageService  ->
-                render( parse(jsonNode()).map { JsonNode node ->
-                    String directoryId = node.get('directoryId').asText()
-                    String languageId = node.get('languageId').asText()
-                    String filePath = node.get('outputFile').asText()
-                    String fileNameId = node.get('fileNameId').asText()
-                    File outputFile = imageService.renameFile(filePath,fileNameId)
-                    accountService.getActive().then({ List<Account> accounts ->
-                        Account account = accounts[0]
-                        uploadService.uploadFile(outputFile, account.url, directoryId, languageId).then { Boolean result ->
-                            if (result) {
-                                log.info("file: ${outputFile.name} has been uploaded.")
-                            } else {
-                                log.info("file cannot be uploaded.")
-                            }
-                        }
-                    })
-                    return json(['directoryId': directoryId ,
-                                  'filePath': filePath ,
-                                  'languageId': languageId,
-                                 'fileNameId': fileNameId])
-                })
-        }
+        all(chain(registry.get(UploadDocChain)))
 
         get("${uploadPath}/:imagePath"){
             response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
