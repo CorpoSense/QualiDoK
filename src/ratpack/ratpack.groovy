@@ -2,20 +2,16 @@ import com.corposense.ConnectionInitializer
 import com.corposense.Constants
 import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
-import com.corposense.ocr.ImageConverter
+import com.corposense.ratpack.Account.AccountChain
 import com.corposense.ratpack.Ocr.OcrChain
 import com.corposense.ratpack.Ocr.SaveEditedTextChain
 import com.corposense.ratpack.Ocr.UploadDocChain
 import com.corposense.services.AccountService
-import com.corposense.services.ImageService
-import com.corposense.services.UploadService
-import com.fasterxml.jackson.databind.JsonNode
 import com.zaxxer.hikari.HikariConfig
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import ratpack.form.Form
 import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
@@ -25,9 +21,7 @@ import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
 import java.nio.file.Path
 import static ratpack.groovy.Groovy.ratpack
-import static ratpack.jackson.Jackson.jsonNode
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
-import static ratpack.jackson.Jackson.json
 
 import groovy.json.JsonSlurper
 
@@ -66,6 +60,7 @@ ratpack {
         bind(OcrChain)
         bind(SaveEditedTextChain)
         bind(UploadDocChain)
+        bind(AccountChain)
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
@@ -145,46 +140,8 @@ ratpack {
         }
 
         prefix('server') {
-
-            path("delete") { AccountService accountService ->
-                byMethod {
-                    post {
-                        parse(Form).then { Form map ->
-                            accountService.delete(map['id']).then { Integer id ->
-                                redirect('/server')
-                            }
-                        }
-                    }
-                }
-            }
-
-            path(':id'){ AccountService accountService ->
-                byMethod {
-                    get {
-                        accountService.get(pathTokens['id']).then { Account account ->
-                            render(json(account))
-                        }
-                    }
-                }
-            }
-
-            all { AccountService accountService ->
-                byMethod {
-                    get {
-                        accountService.all.then { List<Account> accounts ->
-                            render(view('server', [servers: accounts]))
-                        }
-                    }
-                    post {
-                        parse(Form).then { Form map ->
-                            accountService.create( new Account(map) ).then { Integer id ->
-                                redirect('/server')
-                            }
-                        }
-                    }
-                } // byMethod
-            } // all
-        } // prefix('/server')
+            all chain(registry.get(AccountChain))
+        }
 
         // Serve public files (assets...)
 //        files { dir 'static' }
