@@ -47,17 +47,25 @@
             </form>
         </div><!-- .col-md-6 -->
 
+    </div><!-- .row -->
+    <div class="row">
         <div class="col-md-6">
-            <!--<div class="form-group">
-                <label for="folderId">Directories:</label>
-                <select id="folderId" class="form-control">
-                    <option value="4">Directories</option>
-                </select>
-            </div> !-->
-            
+            <!-- Upload Form -->
+            <form id="upload-office" action="uploadOffice" method="post" class="form-vertical" role="form" enctype="multipart/form-data" >
+                <div class="form-group">
+                    <label class="control-label" for="input-docx">Select a document (doc or docx):</label>
+                    <input type="file" name="input-docx" id="input-docx" multiple="multiple" class="form-control" accept=".doc,.docx">
+                </div>
+                <div class="form-group pull-right">
+                    <input type="submit" class="btn btn-primary" value="UploadDoc">
+                </div>
+            </form>
         </div><!-- .col-md-6 -->
 
     </div><!-- .row -->
+    <div class="alert alert-danger hidden" id="msg-warning">
+        <p>No file selected</p>
+    </div>
 
 </div><!-- #page-content -->
 
@@ -72,6 +80,14 @@ $(function(){
         setTimeout(function(){
             $(loading).append("You will be redirected...");
         }, 5000);
+    });
+});
+$(function(){
+    $('#upload-office').on('submit', function(e){
+        if (!$('#input-docx').val()) {
+        e.preventDefault();//prevent the page from reloading
+      $('#msg-warning').removeClass('hidden');
+    }
     });
 });
 </script>

@@ -6,12 +6,12 @@ import com.corposense.ratpack.Account.AccountChain
 import com.corposense.ratpack.Ocr.OcrChain
 import com.corposense.ratpack.Ocr.SaveEditedTextChain
 import com.corposense.ratpack.Ocr.UploadDocChain
+import com.corposense.ratpack.Ocr.UploadOfficeChain
 import com.corposense.services.AccountService
 import com.zaxxer.hikari.HikariConfig
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
@@ -61,6 +61,7 @@ ratpack {
         bind(SaveEditedTextChain)
         bind(UploadDocChain)
         bind(AccountChain)
+        bind(UploadOfficeChain)
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
@@ -137,6 +138,9 @@ ratpack {
 
         prefix('upload') {
             all chain(registry.get(OcrChain))
+        }
+        prefix('uploadOffice'){
+            all chain(registry.get(UploadOfficeChain))
         }
 
         prefix('server') {

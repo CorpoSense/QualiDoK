@@ -34,6 +34,7 @@ import org.apache.pdfbox.pdmodel.graphics.PDXObject
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 
+
 @CompileStatic
 class ImageService extends PDFStreamEngine {
 
@@ -196,11 +197,6 @@ class ImageService extends PDFStreamEngine {
             String filewExt = inputImage.substring(inputImage.lastIndexOf(File.separator) + 1)
             //ex:image
             String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
-            //log.info("${filewExt}")
-            //log.info("${fileName}")
-
-            //we use this if the input File has File as a Type
-            // String fileName = getFileNameWithoutExt(inputImage)+'.pdf'
 
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
             FileOutputStream fos = new FileOutputStream(doc.toString())
@@ -467,8 +463,8 @@ class ImageService extends PDFStreamEngine {
     }
     File renameFile(String filePath, String newFileName){
         File outputFile = new File(filePath)
-        File newFile = new File("${outputFile.getParent()}"+File.separator+"${newFileName}${"."}${getImageExt(outputFile)}")
-        outputFile.renameTo("${newFile}")
+        File newFile = new File("${outputFile.getParent()}","${newFileName}${"."}${getImageExt(outputFile)}")
+        outputFile.renameTo(newFile)
         return newFile
     }
 

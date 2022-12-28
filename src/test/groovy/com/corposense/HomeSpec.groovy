@@ -1,7 +1,6 @@
 package com.corposense
 
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
-import ratpack.test.MainClassApplicationUnderTest
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -25,6 +24,4 @@ class HomeSpec extends Specification {
             aut                              | type
             groovyScriptApplicationUnderTest | 'ratpack.groovy'
     }
-
-
 }
