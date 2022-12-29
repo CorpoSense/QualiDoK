@@ -4,7 +4,7 @@ import com.corposense.Constants
 import com.corposense.models.Account
 import com.corposense.services.AccountService
 import com.corposense.services.ImageService
-import com.corposense.services.UploadService
+import com.corposense.services.OfficeService
 import com.google.inject.Inject
 import groovy.json.JsonSlurper
 import org.slf4j.Logger
@@ -26,11 +26,14 @@ class UploadOfficeChain implements Action<Chain> {
     private final AccountService accountService
     private final ImageService imageService
     final int FOLDER_ID = 4
+    private final OfficeService officeService
     @Inject
-    UploadOfficeChain(HttpClient client, AccountService accountService, ImageService imageService){
+    UploadOfficeChain(HttpClient client, AccountService accountService,
+                      ImageService imageService,OfficeService officeService){
         this.client = client
         this.accountService = accountService
         this.imageService = imageService
+        this.officeService = officeService
     }
     @Override
     void execute(Chain chain) throws Exception {
@@ -52,25 +55,55 @@ class UploadOfficeChain implements Action<Chain> {
                                     List<UploadedFile> files = form.files('input-docx')
                                     // Single document upload
                                     UploadedFile uploadedFile = files.first()
-                                    //String fileType = uploadedFile.contentType.type
-                                    File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                    uploadedFile.writeTo(inputFile.newOutputStream())
-                                    String fileName = imageService.getFileNameWithoutExt(inputFile)
-                                    def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                    client.get(uri) { RequestSpec reqSpec ->
-                                        reqSpec.basicAuth(account.username, account.password)
-                                        reqSpec.headers.set("Accept", 'application/json')
-                                    }.then { ReceivedResponse res ->
+                                    String fileType = uploadedFile.contentType.type
+                                    //Handel .doc files
+                                    if (fileType.contains('msword')) {
+                                        File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                        uploadedFile.writeTo(inputFile.newOutputStream())
+                                        String fileName = imageService.getFileNameWithoutExt(inputFile)
 
-                                        JsonSlurper jsonSlurper = new JsonSlurper()
-                                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                        File pdfDoc = officeService.convertDocToPdf(inputFile)
+                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                        client.get(uri) { RequestSpec reqSpec ->
+                                            reqSpec.basicAuth(account.username, account.password)
+                                            reqSpec.headers.set("Accept", 'application/json')
+                                        }.then { ReceivedResponse res ->
 
-                                        render(view('previewOffice', [
-                                                'outputFile': inputFile.path,
-                                                'fileName'     : fileName,
-                                                'directories'  : directories
-                                        ]))
+                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                            render(view('preview', [
+                                                    'outputFile': pdfDoc.path,
+                                                    'fileName'     : fileName,
+                                                    'directories'  : directories
+                                            ]))
+                                        }
+                                    }else{
+                                        //Handel .docx files
+                                        File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                        uploadedFile.writeTo(inputFile.newOutputStream())
+                                        //ToDo try to find the reason behind ( ERROR com.corposense.services.ImageService
+                                        // - IOException: Truncated ZIP file)
+                                        String fileName = imageService.getFileNameWithoutExt(inputFile)
+
+                                        File pdfDoc = officeService.ConvertDocxToPdf(inputFile)
+                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                        client.get(uri) { RequestSpec reqSpec ->
+                                            reqSpec.basicAuth(account.username, account.password)
+                                            reqSpec.headers.set("Accept", 'application/json')
+                                        }.then { ReceivedResponse res ->
+
+                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                            render(view('preview', [
+                                                    'outputFile': pdfDoc.path,
+                                                    'fileName'     : fileName,
+                                                    'directories'  : directories
+                                            ]))
+                                        }
                                     }
                                 }
                             }

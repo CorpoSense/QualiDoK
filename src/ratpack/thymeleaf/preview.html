@@ -123,17 +123,26 @@
                 </div><!-- .col-md-6 -->
 
                 <div class="col-md-6">
-                    <ul class="nav nav-tabs">
-                        <li class="active">
-                            <a href="#preview-document" data-toggle="tab">Original Document</a>
-                        </li>
-                    </ul>
-                    <!-- <input id="lang" type="hidden value="fr"> -->
-                    <div th:if="${inputImage} != null" class="tab-content">
-                        <img id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
+                    <div th:if="${inputImage} != null" >
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="#preview-document" data-toggle="tab">Original Document</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <img id="uploadedImage" th:src="${inputImage}" alt="output" width="100%" />
+                        </div>
                     </div>
-                    <div th:if="${inputPdfFile} != null" class="tab-content">
-                        <embed id="inputPdfFile" th:src="${inputPdfFile}" type="application/pdf" width="100%" height="500px" />
+
+                    <div th:if="${inputPdfFile} != null">
+                        <ul class="nav nav-tabs">
+                            <li class="active">
+                                <a href="#preview-document" data-toggle="tab">Original Document</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <embed id="inputPdfFile" th:src="${inputPdfFile}" type="application/pdf" width="100%" height="500px" />
+                        </div>
                     </div>
                 </div><!-- .col-md-6 -->
             </div><!-- .row -->
