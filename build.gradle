@@ -60,6 +60,11 @@ dependencies {
     // okhttp
     implementation 'io.github.http-builder-ng:http-builder-ng-okhttp:1.0.4'
 
+    implementation 'org.apache.poi:poi:4.1.2'
+    //For DOCX Files
+    implementation 'org.apache.poi:poi-ooxml:4.1.2'
+    //For DOC Files
+    implementation 'org.apache.poi:poi-scratchpad:4.1.2'
 }
 
 test {
