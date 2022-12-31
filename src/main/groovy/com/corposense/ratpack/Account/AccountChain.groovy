@@ -10,7 +10,9 @@ import ratpack.handling.Chain
 
 import static ratpack.jackson.Jackson.json
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
+//import groovy.transform.CompileStatic
 
+//@CompileStatic
 class AccountChain implements Action<Chain> {
     private final AccountService accountService
 
@@ -18,6 +20,7 @@ class AccountChain implements Action<Chain> {
     AccountChain(AccountService accountService){
         this.accountService = accountService
     }
+
     @Override
     void execute(Chain chain) throws Exception {
         Groovy.chain(chain) {
