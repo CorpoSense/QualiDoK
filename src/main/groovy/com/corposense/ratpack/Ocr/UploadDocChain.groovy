@@ -14,7 +14,9 @@ import ratpack.handling.Chain
 
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.jsonNode
+//import groovy.transform.CompileStatic
 
+//@CompileStatic
 class UploadDocChain implements Action<Chain> {
     private final AccountService accountService
     private final UploadService uploadService

@@ -20,21 +20,27 @@ import ratpack.http.client.RequestSpec
 
 import java.nio.file.Path
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
+//import groovy.transform.CompileStatic
 
+//@CompileStatic
 class UploadOfficeChain implements Action<Chain> {
-    private final HttpClient client
+    
+    final int FOLDER_ID = 4
+
+    private final HttpClient httpClient
     private final AccountService accountService
     private final ImageService imageService
-    final int FOLDER_ID = 4
     private final OfficeService officeService
+
     @Inject
     UploadOfficeChain(HttpClient client, AccountService accountService,
                       ImageService imageService,OfficeService officeService){
-        this.client = client
+        this.httpClient = client
         this.accountService = accountService
         this.imageService = imageService
         this.officeService = officeService
     }
+
     @Override
     void execute(Chain chain) throws Exception {
         Path uploadPath = Constants.uploadPath
@@ -56,7 +62,7 @@ class UploadOfficeChain implements Action<Chain> {
                                     // Single document upload
                                     UploadedFile uploadedFile = files.first()
                                     String fileType = uploadedFile.contentType.type
-                                    //Handel .doc files
+                                    //Handle .doc files
                                     if (fileType.contains('msword')) {
                                         File inputFile = new File("${uploadPath}", uploadedFile.fileName)
                                         uploadedFile.writeTo(inputFile.newOutputStream())
@@ -65,7 +71,7 @@ class UploadOfficeChain implements Action<Chain> {
                                         File pdfDoc = officeService.convertDocToPdf(inputFile)
                                         def folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                         URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                        client.get(uri) { RequestSpec reqSpec ->
+                                        httpClient.get(uri) { RequestSpec reqSpec ->
                                             reqSpec.basicAuth(account.username, account.password)
                                             reqSpec.headers.set("Accept", 'application/json')
                                         }.then { ReceivedResponse res ->
@@ -90,7 +96,7 @@ class UploadOfficeChain implements Action<Chain> {
                                         File pdfDoc = officeService.ConvertDocxToPdf(inputFile)
                                         def folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                         URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                        client.get(uri) { RequestSpec reqSpec ->
+                                        httpClient.get(uri) { RequestSpec reqSpec ->
                                             reqSpec.basicAuth(account.username, account.password)
                                             reqSpec.headers.set("Accept", 'application/json')
                                         }.then { ReceivedResponse res ->

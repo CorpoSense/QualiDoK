@@ -21,8 +21,9 @@ import ratpack.http.client.RequestSpec
 import java.nio.file.Path
 
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
+//import groovy.transform.CompileStatic
 
-
+//@CompileStatic
 class OcrChain implements Action<Chain> {
 
     private final HttpClient client

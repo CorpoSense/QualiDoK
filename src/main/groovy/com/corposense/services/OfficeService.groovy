@@ -24,6 +24,7 @@ class OfficeService extends ImageService{
             doc = new HWPFDocument(docFile)
             wordExtractor = new WordExtractor(doc)
             String text = wordExtractor.getText()
+            log.info("Doc text: ${text}")
             pdfDoc = new File("${Constants.downloadPath}", fileName)
             OutputStream fos = new FileOutputStream(pdfDoc.toString())
             wordExtractor.close()
@@ -60,7 +61,8 @@ class OfficeService extends ImageService{
 
             wordExtractor = new XWPFWordExtractor(docx)
             String text = wordExtractor.getText()
-
+            log.info("Docx text: ${text}")
+            
             pdfDoc = new File("${Constants.downloadPath}", fileName)
             OutputStream fos = new FileOutputStream(pdfDoc.toString())
             wordExtractor.close()

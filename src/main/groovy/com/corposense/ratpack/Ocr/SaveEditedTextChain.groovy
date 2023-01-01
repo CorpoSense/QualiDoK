@@ -17,8 +17,9 @@ import java.util.function.Consumer
 
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.jsonNode
+//import groovy.transform.CompileStatic
 
-
+//@CompileStatic
 class SaveEditedTextChain implements Action<Chain> {
 
     private final AccountService accountService

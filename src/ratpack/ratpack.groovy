@@ -137,14 +137,15 @@ ratpack {
         }
 
         prefix('upload') {
-            all chain(registry.get(OcrChain))
+            all(chain(registry.get(OcrChain)))
         }
-        prefix('uploadOffice'){
-            all chain(registry.get(UploadOfficeChain))
+        
+        prefix('uploadOffice') {
+            all(chain(registry.get(UploadOfficeChain)))
         }
 
         prefix('server') {
-            all chain(registry.get(AccountChain))
+            all(chain(registry.get(AccountChain)))
         }
 
         // Serve public files (assets...)
