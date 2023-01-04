@@ -1,9 +1,10 @@
-package com.corposense.ratpack.Ocr
+package com.corposense.ratpack.handlers
 
 import com.corposense.Constants
 import com.corposense.models.Account
 import com.corposense.services.AccountService
 import com.corposense.services.ImageService
+import com.corposense.services.OfficeService
 import com.corposense.services.UploadService
 import com.google.inject.Inject
 import groovy.json.JsonSlurper
@@ -30,13 +31,15 @@ class OcrChain implements Action<Chain> {
     private final AccountService accountService
     private final UploadService uploadService
     private final ImageService imageService
+    private final OfficeService officeService
 
     @Inject
-    OcrChain(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService){
+    OcrChain(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService){
         this.client = client
         this.accountService = accountService
         this.uploadService = uploadService
         this.imageService = imageService
+        this.officeService = officeService
     }
 
     @Override
@@ -72,11 +75,11 @@ class OcrChain implements Action<Chain> {
                                             UploadedFile uploadedFile = files.first()
                                             String fileType = uploadedFile.contentType.type
 
-                                            if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
-                                                // TODO: may need to back to /upload page
-                                                render(view('preview', ['message':'This type of file is not supported.']))
-                                                return
-                                            }
+//                                            if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
+//                                                // TODO: may need to back to /upload page
+//                                                render(view('preview', ['message':'This type of file is not supported.']))
+//                                                return
+//                                            }
                                             String typeOcr = form.get('type-ocr')
                                             log.info("Type of processing: ${typeOcr}")
 
@@ -140,11 +143,45 @@ class OcrChain implements Action<Chain> {
 //                                                           'detectedLanguage': detectedLanguage
                                                             ]))
                                                         }
+                                                        //Handle .doc files
+                                                    } else if (fileType.contains('msword')) {
+                                                            String plainText = officeService.extractTextDoc(inputFile)
+                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                            client.get(uri) { RequestSpec reqSpec ->
+                                                                reqSpec.basicAuth(account.username, account.password)
+                                                                reqSpec.headers.set("Accept", 'application/json')
+                                                            }.then { ReceivedResponse res ->
 
-                                                    } else {
-                                                        // Handle other type of documents
-                                                        render(view('preview', ['message': 'This file type is not currently supported.']))
-                                                    }
+                                                                JsonSlurper jsonSlurper = new JsonSlurper()
+                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                                render(view('preview', [
+                                                                        'fullText': plainText,
+                                                                        'fileName'     : fileName,
+                                                                        'directories'  : directories
+                                                                ]))
+                                                            }
+                                                        }else if(fileType.contains('document')) {
+                                                                //Handle .docx files
+                                                                String plainText = officeService.extractTextDocx(inputFile)
+                                                                def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                                URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                                client.get(uri) { RequestSpec reqSpec ->
+                                                                    reqSpec.basicAuth(account.username, account.password)
+                                                                    reqSpec.headers.set("Accept", 'application/json')
+                                                                }.then { ReceivedResponse res ->
+
+                                                                    JsonSlurper jsonSlurper = new JsonSlurper()
+                                                                    ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                                    render(view('preview', [
+                                                                            'fullText' : plainText,
+                                                                            'fileName'   : fileName,
+                                                                            'directories': directories
+                                                                    ]))
+                                                                }
+                                                            }
                                                     break
                                                 case 'produce-pdf':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
@@ -198,9 +235,44 @@ class OcrChain implements Action<Chain> {
                                                                     'directories': directories
                                                             ]))
                                                         }
-                                                    } else {
                                                         // Handle other type of documents
-                                                        render(view('preview', ['message': 'This file type is not currently supported.']))
+                                                    } else if (fileType.contains('msword')) {
+                                                        File pdfDoc = officeService.convertDocToPdf(inputFile)
+                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                        client.get(uri) { RequestSpec reqSpec ->
+                                                            reqSpec.basicAuth(account.username, account.password)
+                                                            reqSpec.headers.set("Accept", 'application/json')
+                                                        }.then { ReceivedResponse res ->
+
+                                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                            render(view('preview', [
+                                                                    'outputFile': pdfDoc.path,
+                                                                    'fileName'     : fileName,
+                                                                    'directories'  : directories
+                                                            ]))
+                                                        }
+                                                    }else if(fileType.contains('document')) {
+                                                        //Handle .docx files
+                                                        File pdfDoc = officeService.convertDocxToPdf(inputFile)
+                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                        client.get(uri) { RequestSpec reqSpec ->
+                                                            reqSpec.basicAuth(account.username, account.password)
+                                                            reqSpec.headers.set("Accept", 'application/json')
+                                                        }.then { ReceivedResponse res ->
+
+                                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                            render(view('preview', [
+                                                                    'outputFile' : pdfDoc.path,
+                                                                    'fileName'   : fileName,
+                                                                    'directories': directories
+                                                            ]))
+                                                        }
                                                     }
                                                     break
                                                 default:

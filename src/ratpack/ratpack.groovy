@@ -2,11 +2,10 @@ import com.corposense.ConnectionInitializer
 import com.corposense.Constants
 import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
-import com.corposense.ratpack.Account.AccountChain
-import com.corposense.ratpack.Ocr.OcrChain
-import com.corposense.ratpack.Ocr.SaveEditedTextChain
-import com.corposense.ratpack.Ocr.UploadDocChain
-import com.corposense.ratpack.Ocr.UploadOfficeChain
+import com.corposense.ratpack.handlers.AccountChain
+import com.corposense.ratpack.handlers.OcrChain
+import com.corposense.ratpack.handlers.SaveEditedTextChain
+import com.corposense.ratpack.handlers.UploadDocChain
 import com.corposense.services.AccountService
 import com.zaxxer.hikari.HikariConfig
 
@@ -61,7 +60,7 @@ ratpack {
         bind(SaveEditedTextChain)
         bind(UploadDocChain)
         bind(AccountChain)
-        bind(UploadOfficeChain)
+
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
@@ -138,10 +137,6 @@ ratpack {
 
         prefix('upload') {
             all(chain(registry.get(OcrChain)))
-        }
-        
-        prefix('uploadOffice') {
-            all(chain(registry.get(UploadOfficeChain)))
         }
 
         prefix('server') {

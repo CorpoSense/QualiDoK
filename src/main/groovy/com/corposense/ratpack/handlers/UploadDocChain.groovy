@@ -1,4 +1,4 @@
-package com.corposense.ratpack.Ocr
+package com.corposense.ratpack.handlers
 
 import com.corposense.models.Account
 import com.corposense.services.AccountService
