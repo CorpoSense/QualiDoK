@@ -189,33 +189,17 @@ class ImageService extends PDFStreamEngine {
     }
     File generateDocument(String fullText , String inputImage){
         Document document = null
-        // Get a PdfWriter instance
         File doc = null
         try {
             document = new Document(PageSize.LETTER)
-            //ex:image.jpg
-            String filewExt = inputImage.substring(inputImage.lastIndexOf(File.separator) + 1)
-            //ex:image
-            String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
-
-            doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
+            doc = new File("${Constants.downloadPath}", "${inputImage}.pdf")
             FileOutputStream fos = new FileOutputStream(doc.toString())
             // use HTMLConverter
             HtmlConverter.convertToPdf(fullText, fos)
-
-            // PdfWriter.getInstance(document, fos)
-            //Open the Document
-            // document.open()
-            //Add content
-            // Font font = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK)
-            // Paragraph paragraph = new Paragraph(fullText, font)
-            // document.add(paragraph)
-            // File docPdf = new File(doc.parent, "${doc.name}")
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
-            //Close the document
             if (document){
                 document.close()
             }

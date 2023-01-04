@@ -1,4 +1,4 @@
-package com.corposense.ratpack.Ocr
+package com.corposense.ratpack.handlers
 
 import com.corposense.models.Account
 import com.corposense.services.AccountService
@@ -40,11 +40,10 @@ class SaveEditedTextChain implements Action<Chain> {
             post('save') {
                 render( parse(jsonNode()).map { JsonNode node ->
                     String editedText = new String(node.get('payload').asText().toString().decodeBase64())
-                    String filePath = node.get('inputFile').asText()
                     String directoryId = node.get('directoryId').asText()
                     String languageId = node.get('languageId').asText()
                     String fileNameId = node.get('fileNameId').asText()
-                    File outputDoc = imageService.generateDocument(new String(editedText),filePath)
+                    File outputDoc = imageService.generateDocument(new String(editedText),fileNameId)
                     File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
                     accountService.getActive().then({ List<Account> accounts ->
                         Account account = accounts[0]
@@ -57,7 +56,6 @@ class SaveEditedTextChain implements Action<Chain> {
                         }
                     })
                     return json(['editedText': editedText ,
-                                 'imagePath': filePath ,
                                  'directoryId': directoryId ,
                                  'languageId': languageId ,
                                  'fileNameId':fileNameId])

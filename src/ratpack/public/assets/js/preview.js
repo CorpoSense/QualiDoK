@@ -140,17 +140,11 @@ $("#save").click(function(){
      }else{
          $('#msg-warning').addClass('hidden');
          var encodedText = $('.summernote').code();
-          $('.summernote').destroy();
+         $('.summernote').destroy();
 
-          if ($('#uploadedImage').attr('src') == null) {
-             var filePath = $('#inputPdfFile').attr('src');
-          }else {
-             var filePath = $('#uploadedImage').attr('src');
-          }
-
-          var directoryId = $('#folderId').val();
-          var languageId = $('#languageId').val();
-          var fileNameId = $('#fileNameId').val();
+         var directoryId = $('#folderId').val();
+         var languageId = $('#languageId').val();
+         var fileNameId = $('#fileNameId').val();
          var aMyUTF8Input = strToUTF8Arr(encodedText);
          var encodedPayload = base64EncArr(aMyUTF8Input);
 
@@ -162,7 +156,6 @@ $("#save").click(function(){
              type: 'POST',
              contentType: 'application/json',
              data: JSON.stringify({'payload': encodedPayload ,
-                                   'inputFile': filePath ,
                                    'directoryId': directoryId ,
                                    'languageId': languageId ,
                                    'fileNameId': fileNameId}),
