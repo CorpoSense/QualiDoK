@@ -4,15 +4,23 @@ import com.corposense.Constants
 import com.itextpdf.text.Document
 import com.itextpdf.text.PageSize
 import com.itextpdf.text.Paragraph
-
+import org.apache.commons.lang3.exception.ExceptionUtils
+import org.apache.poi.EncryptedDocumentException
+import org.apache.poi.hssf.record.crypto.Biff8EncryptionKey
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.extractor.WordExtractor
 import com.itextpdf.text.pdf.PdfWriter
+import org.apache.poi.ooxml.extractor.ExtractorFactory
+import org.apache.poi.poifs.crypt.Decryptor
+import org.apache.poi.poifs.crypt.EncryptionInfo
+import org.apache.poi.poifs.filesystem.POIFSFileSystem
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.security.GeneralSecurityException
 
 
 class OfficeService {
@@ -88,6 +96,7 @@ class OfficeService {
     }
 
  */
+
     private File createPdf(File inputFile , String text){
         Document document = null
         File pdfDoc = null
@@ -101,7 +110,7 @@ class OfficeService {
             document.open()
             document.add(new Paragraph(text))
             log.info("pdf document will be created at: ${Constants.downloadPath}/${pdfDoc.name}")
-        } catch (e) {
+        } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
             if (document){
@@ -109,6 +118,22 @@ class OfficeService {
             }
         }
         return pdfDoc
+    }
+
+    static boolean isPwdProtected(File inputFile) {
+        try {
+            ExtractorFactory.createExtractor(new FileInputStream(inputFile));
+        } catch (EncryptedDocumentException e) {
+            return true
+        } catch (Exception e) {
+            Throwable[] throwables = ExceptionUtils.getThrowables(e)
+            for (Throwable throwable : throwables) {
+                if (throwable instanceof EncryptedDocumentException) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     String extractTextDoc(File inputFile){
@@ -133,29 +158,28 @@ class OfficeService {
         }
         return text
     }
-    String extractTextDocx(File inputFile){
+    String extractTextDocx(File inputFile) {
         XWPFDocument docx = null
         XWPFWordExtractor wordExtractor = null
         String text = null
-        try{
+        try {
             FileInputStream docFile = new FileInputStream(inputFile)
             docx = new XWPFDocument(docFile)
             wordExtractor = new XWPFWordExtractor(docx)
             text = wordExtractor.getText()
             wordExtractor.close()
         } catch (Exception e) {
-            log.error ("${e.getClass().simpleName}: ${e.message}")
+            log.error("${e.getClass().simpleName}: ${e.message}")
         } finally {
-            if(docx){
+            if (docx) {
                 docx.close()
             }
-            if(wordExtractor){
+            if (wordExtractor) {
                 wordExtractor.close()
             }
         }
         return text
 
     }
-
 
 }

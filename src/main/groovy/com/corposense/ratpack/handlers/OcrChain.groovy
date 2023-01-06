@@ -145,6 +145,9 @@ class OcrChain implements Action<Chain> {
                                                         }
                                                         //Handle .doc files
                                                     } else if (fileType.contains('msword')) {
+                                                        if (officeService.isPwdProtected(inputFile)) {
+                                                            render(view('preview', ['message' : "Unable to process: document is encrypted"]))
+                                                        }else{
                                                             String plainText = officeService.extractTextDoc(inputFile)
                                                             def folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                                             URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
@@ -162,26 +165,31 @@ class OcrChain implements Action<Chain> {
                                                                         'directories'  : directories
                                                                 ]))
                                                             }
-                                                        }else if(fileType.contains('document')) {
+
+                                                        }}else if(fileType.contains('document')) {
                                                                 //Handle .docx files
-                                                                String plainText = officeService.extractTextDocx(inputFile)
-                                                                def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                                URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                                client.get(uri) { RequestSpec reqSpec ->
-                                                                    reqSpec.basicAuth(account.username, account.password)
-                                                                    reqSpec.headers.set("Accept", 'application/json')
-                                                                }.then { ReceivedResponse res ->
+                                                             if (officeService.isPwdProtected(inputFile)) {
+                                                                 render(view('preview', ['message' : "Unable to process: document is encrypted"]))
+                                                             }else{
+                                                                 String plainText = officeService.extractTextDocx(inputFile)
+                                                                 def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                                 URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                                 client.get(uri) { RequestSpec reqSpec ->
+                                                                     reqSpec.basicAuth(account.username, account.password)
+                                                                     reqSpec.headers.set("Accept", 'application/json')
+                                                                 }.then { ReceivedResponse res ->
 
-                                                                    JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                    ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                     JsonSlurper jsonSlurper = new JsonSlurper()
+                                                                     ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
 
-                                                                    render(view('preview', [
-                                                                            'fullText' : plainText,
-                                                                            'fileName'   : fileName,
-                                                                            'directories': directories
-                                                                    ]))
-                                                                }
-                                                            }
+                                                                     render(view('preview', [
+                                                                             'fullText' : plainText,
+                                                                             'fileName'   : fileName,
+                                                                             'directories': directories
+                                                                     ]))
+                                                                 }
+                                                             }
+                                                        }
                                                     break
                                                 case 'produce-pdf':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
@@ -237,41 +245,49 @@ class OcrChain implements Action<Chain> {
                                                         }
                                                         // Handle other type of documents
                                                     } else if (fileType.contains('msword')) {
-                                                        File pdfDoc = officeService.convertDocToPdf(inputFile)
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
+                                                        if (officeService.isPwdProtected(inputFile)) {
+                                                            render(view('preview', ['message': "Unable to process: document is encrypted"]))
+                                                        }else {
+                                                            File pdfDoc = officeService.convertDocToPdf(inputFile)
+                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                            client.get(uri) { RequestSpec reqSpec ->
+                                                                reqSpec.basicAuth(account.username, account.password)
+                                                                reqSpec.headers.set("Accept", 'application/json')
+                                                            }.then { ReceivedResponse res ->
 
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                JsonSlurper jsonSlurper = new JsonSlurper()
+                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
 
-                                                            render(view('preview', [
-                                                                    'outputFile': pdfDoc.path,
-                                                                    'fileName'     : fileName,
-                                                                    'directories'  : directories
-                                                            ]))
+                                                                render(view('preview', [
+                                                                        'outputFile': pdfDoc.path,
+                                                                        'fileName'     : fileName,
+                                                                        'directories'  : directories
+                                                                ]))
+                                                            }
                                                         }
                                                     }else if(fileType.contains('document')) {
                                                         //Handle .docx files
-                                                        File pdfDoc = officeService.convertDocxToPdf(inputFile)
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
+                                                        if (officeService.isPwdProtected(inputFile)) {
+                                                            render(view('preview', ['message': "Unable to process: document is encrypted"]))
+                                                        }else {
+                                                            File pdfDoc = officeService.convertDocxToPdf(inputFile)
+                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                            client.get(uri) { RequestSpec reqSpec ->
+                                                                reqSpec.basicAuth(account.username, account.password)
+                                                                reqSpec.headers.set("Accept", 'application/json')
+                                                            }.then { ReceivedResponse res ->
 
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                JsonSlurper jsonSlurper = new JsonSlurper()
+                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
 
-                                                            render(view('preview', [
-                                                                    'outputFile' : pdfDoc.path,
-                                                                    'fileName'   : fileName,
-                                                                    'directories': directories
-                                                            ]))
+                                                                render(view('preview', [
+                                                                        'outputFile' : pdfDoc.path,
+                                                                        'fileName'   : fileName,
+                                                                        'directories': directories
+                                                                ]))
+                                                            }
                                                         }
                                                     }
                                                     break
