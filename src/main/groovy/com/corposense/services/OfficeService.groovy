@@ -6,21 +6,17 @@ import com.itextpdf.text.PageSize
 import com.itextpdf.text.Paragraph
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.poi.EncryptedDocumentException
-import org.apache.poi.hssf.record.crypto.Biff8EncryptionKey
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.extractor.WordExtractor
 import com.itextpdf.text.pdf.PdfWriter
 import org.apache.poi.ooxml.extractor.ExtractorFactory
-import org.apache.poi.poifs.crypt.Decryptor
-import org.apache.poi.poifs.crypt.EncryptionInfo
-import org.apache.poi.poifs.filesystem.POIFSFileSystem
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor
 import org.apache.poi.xwpf.usermodel.XWPFDocument
-
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.zwobble.mammoth.DocumentConverter
+import org.zwobble.mammoth.Result
 
-import java.security.GeneralSecurityException
 
 
 class OfficeService {
@@ -86,6 +82,12 @@ class OfficeService {
         File pdfDoc = createPdf(inputFile,text)
         return pdfDoc
     }
+    //Handle doc and docx file
+//    File convertWordToPdf(File inputFile){
+//        String text = extractText(inputFile)
+//        File pdfDoc = createPdf(inputFile,text)
+//        return pdfDoc
+//    }
 
 /*
     //extract content using facade
@@ -96,6 +98,30 @@ class OfficeService {
     }
 
  */
+    //To simplify the selection of which text extraction class to use, we will use
+    //the ExtractorFactory class
+//    String extractText(File inputFile){
+//        String text = null
+//        try {
+//            FileInputStream fis = new FileInputStream(inputFile)
+//            POITextExtractor textExtractor = ExtractorFactory.createExtractor(fis)
+//            text = textExtractor.getText()
+//        } catch (IOException ex ) {
+//            log.error ("${ex.getClass().simpleName}: ${ex.message}")
+//        } catch (OpenXML4JException ex) {
+//            log.error ("${ex.getClass().simpleName}: ${ex.message}")
+//        } catch (XmlException ex) {
+//            log.error ("${ex.getClass().simpleName}: ${ex.message}")
+//        }
+//        return text
+//    }
+    String convertWordToHtml(File inputFile) {
+        DocumentConverter converter = new DocumentConverter()
+        Result<String> result = converter.convertToHtml(inputFile)
+        String html = result.getValue() // The generated HTML
+        Set<String> warnings = result.getWarnings() // Any warnings during conversion
+        return html
+    }
 
     private File createPdf(File inputFile , String text){
         Document document = null
@@ -122,7 +148,7 @@ class OfficeService {
 
     static boolean isPwdProtected(File inputFile) {
         try {
-            ExtractorFactory.createExtractor(new FileInputStream(inputFile));
+            ExtractorFactory.createExtractor(new FileInputStream(inputFile))
         } catch (EncryptedDocumentException e) {
             return true
         } catch (Exception e) {

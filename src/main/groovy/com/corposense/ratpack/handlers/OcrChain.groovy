@@ -271,7 +271,9 @@ class OcrChain implements Action<Chain> {
                                                         if (officeService.isPwdProtected(inputFile)) {
                                                             render(view('preview', ['message': "Unable to process: document is encrypted"]))
                                                         }else {
-                                                            File pdfDoc = officeService.convertDocxToPdf(inputFile)
+                                                            String html = officeService.convertWordToHtml(inputFile)
+                                                            File pdfDoc = imageService.generateDocument(html,fileName)
+                                                            //File pdfDoc = officeService.convertDocxToPdf(inputFile)
                                                             def folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                                             URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
                                                             client.get(uri) { RequestSpec reqSpec ->
