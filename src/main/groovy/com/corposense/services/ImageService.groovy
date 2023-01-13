@@ -206,6 +206,27 @@ class ImageService extends PDFStreamEngine {
         }
         return doc
     }
+    File htmlToPdf(File htmlFile , String fileName) {
+      Document document = null
+        File doc = null
+        try {
+            document = new Document(PageSize.LETTER)
+            doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
+            // use HTMLConverter
+            HtmlConverter.convertToPdf(htmlFile,doc)
+            log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        } finally {
+            if (document){
+                document.close()
+            }
+            if(htmlFile != null){
+                htmlFile.delete()
+            }
+        }
+        return doc
+    }
 
     String produceText(File inputImage){
         String fullText = null

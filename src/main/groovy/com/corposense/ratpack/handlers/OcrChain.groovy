@@ -3,10 +3,12 @@ package com.corposense.ratpack.handlers
 import com.corposense.Constants
 import com.corposense.models.Account
 import com.corposense.services.AccountService
+import com.corposense.services.DocToHtmlService
 import com.corposense.services.ImageService
 import com.corposense.services.OfficeService
 import com.corposense.services.UploadService
 import com.google.inject.Inject
+import com.sun.javadoc.Doc
 import groovy.json.JsonSlurper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -32,14 +34,16 @@ class OcrChain implements Action<Chain> {
     private final UploadService uploadService
     private final ImageService imageService
     private final OfficeService officeService
+    private final DocToHtmlService docToHtmlService
 
     @Inject
-    OcrChain(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService){
+    OcrChain(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService, DocToHtmlService docToHtmlService){
         this.client = client
         this.accountService = accountService
         this.uploadService = uploadService
         this.imageService = imageService
         this.officeService = officeService
+        this.docToHtmlService = docToHtmlService
     }
 
     @Override
@@ -248,7 +252,12 @@ class OcrChain implements Action<Chain> {
                                                         if (officeService.isPwdProtected(inputFile)) {
                                                             render(view('preview', ['message': "Unable to process: document is encrypted"]))
                                                         }else {
-                                                            File pdfDoc = officeService.convertDocToPdf(inputFile)
+                                                            File htmlFile = DocToHtmlService.convertWord(inputFile,fileName)
+                                                            File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
+                                                            //String html = DocToHtml.convertWord(inputFile, fileName)
+                                                            //String html = DocToHtml.convert(inputFile,fileName)
+                                                            //File pdfDoc = imageService.generateDocument(html, fileName)
+                                                            //File pdfDoc = officeService.convertDocToPdf(inputFile)
                                                             def folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                                             URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
                                                             client.get(uri) { RequestSpec reqSpec ->

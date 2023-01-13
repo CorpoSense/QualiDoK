@@ -72,16 +72,16 @@ class OfficeService {
 //        log.info("type of is: ${type}")
        // return pdf
    // }
-    File convertDocToPdf(File inputFile){
-        String text = extractTextDoc(inputFile)
-        File pdfDoc = createPdf(inputFile,text)
-        return pdfDoc
-    }
-    File convertDocxToPdf(File inputFile){
-        String text = extractTextDocx(inputFile)
-        File pdfDoc = createPdf(inputFile,text)
-        return pdfDoc
-    }
+//    File convertDocToPdf(File inputFile){
+//        String text = extractTextDoc(inputFile)
+//        File pdfDoc = createPdf(inputFile,text)
+//        return pdfDoc
+//    }
+//    File convertDocxToPdf(File inputFile){
+//        String text = extractTextDocx(inputFile)
+//        File pdfDoc = createPdf(inputFile,text)
+//        return pdfDoc
+//    }
     //Handle doc and docx file
 //    File convertWordToPdf(File inputFile){
 //        String text = extractText(inputFile)
@@ -115,7 +115,7 @@ class OfficeService {
 //        }
 //        return text
 //    }
-    String convertWordToHtml(File inputFile) {
+    static String convertWordToHtml(File inputFile) {
         DocumentConverter converter = new DocumentConverter()
         Result<String> result = converter.convertToHtml(inputFile)
         String html = result.getValue() // The generated HTML
