@@ -119,6 +119,10 @@ function strToUTF8Arr(sDOMStr) {
   return aBytes;
 }
 
+$(function(){
+    var htmlStr = $('#fullText').val();
+    $('.summernote').html(htmlStr);
+
 $("#edit").click(function(){
     $('.summernote').summernote({
         height: 300,
@@ -215,5 +219,7 @@ $("#upload").click(function(){
                 }
             });
       }
+
+});
 
 });

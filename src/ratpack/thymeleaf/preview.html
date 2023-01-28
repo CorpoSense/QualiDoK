@@ -55,7 +55,8 @@
                         </ul>
                         <div th:if="${fullText} != null" id="tab-content" class="tab-content">
                             <div class="tab-pane in fade active" id="preview-output">
-                                <div class="summernote" th:text="${fullText}"></div>
+                                <div class="summernote"></div>
+                                <input type="hidden" th:value="${fullText}" id="fullText">
                             </div>
                         </div>
                         <!-- <div class="alert alert-info" th:if="${detectedLanguage} != null">-->
