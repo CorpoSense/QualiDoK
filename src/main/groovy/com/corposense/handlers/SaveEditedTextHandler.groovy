@@ -1,4 +1,4 @@
-package com.corposense.ratpack.handlers
+package com.corposense.handlers
 
 import com.corposense.models.Account
 import com.corposense.services.AccountService
@@ -11,9 +11,6 @@ import org.slf4j.LoggerFactory
 import ratpack.func.Action
 import ratpack.groovy.Groovy
 import ratpack.handling.Chain
-import ratpack.http.client.HttpClient
-
-import java.util.function.Consumer
 
 import static ratpack.jackson.Jackson.json
 import static ratpack.jackson.Jackson.jsonNode
@@ -25,6 +22,7 @@ class SaveEditedTextChain implements Action<Chain> {
     private final AccountService accountService
     private final UploadService uploadService
     private final ImageService imageService
+    final Logger log = LoggerFactory.getLogger("ratpack.groovy")
 
     @Inject
     SaveEditedTextChain(AccountService accountService, UploadService uploadService, ImageService imageService){
@@ -35,7 +33,6 @@ class SaveEditedTextChain implements Action<Chain> {
 
     @Override
     void execute (Chain chain) throws Exception{
-        final Logger log = LoggerFactory.getLogger("ratpack.groovy")
         Groovy.chain(chain){
             post('save') {
                 render( parse(jsonNode()).map { JsonNode node ->
@@ -43,7 +40,7 @@ class SaveEditedTextChain implements Action<Chain> {
                     String directoryId = node.get('directoryId').asText()
                     String languageId = node.get('languageId').asText()
                     String fileNameId = node.get('fileNameId').asText()
-                    File outputDoc = imageService.generateDocument(new String(editedText),fileNameId)
+                    File outputDoc = imageService.htmlToPdf(new String(editedText),fileNameId)
                     File outputFile = imageService.renameFile(outputDoc.path,fileNameId)
                     accountService.getActive().then({ List<Account> accounts ->
                         Account account = accounts[0]

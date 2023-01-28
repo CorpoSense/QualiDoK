@@ -61,17 +61,19 @@ dependencies {
     implementation 'io.github.http-builder-ng:http-builder-ng-okhttp:1.0.4'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
-    implementation 'org.apache.poi:poi:4.1.2'
+    implementation 'org.apache.poi:poi:5.2.2'//4.1.2
     //For DOCX Files
-    implementation 'org.apache.poi:poi-ooxml:4.1.2'
+    implementation 'org.apache.poi:poi-ooxml:5.2.2'//4.1.2
     //For DOC Files
-    implementation 'org.apache.poi:poi-scratchpad:4.1.2'
+    implementation 'org.apache.poi:poi-scratchpad:5.2.2'//4.1.2
     //Convert docx to HTML
-    implementation 'org.zwobble.mammoth:mammoth:1.4.2'
+    //implementation 'org.zwobble.mammoth:mammoth:1.4.2'
 
-//    runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:2.19.0")
-//    implementation('org.apache.tika:tika-core:2.6.0')
-//    implementation('org.apache.tika:tika-parsers-standard-package:2.6.0')
+    implementation 'fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.xhtml:2.0.3'
+    implementation 'fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.3'
+    //implementation 'fr.opensagres.xdocreport:xdocreport:1.0.6'
+
+
 }
 
 test {

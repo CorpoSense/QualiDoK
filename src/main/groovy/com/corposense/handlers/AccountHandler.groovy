@@ -1,4 +1,4 @@
-package com.corposense.ratpack.handlers
+package com.corposense.handlers
 
 import com.corposense.models.Account
 import com.corposense.services.AccountService

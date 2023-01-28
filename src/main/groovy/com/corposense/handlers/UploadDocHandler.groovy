@@ -1,4 +1,4 @@
-package com.corposense.ratpack.handlers
+package com.corposense.handlers
 
 import com.corposense.models.Account
 import com.corposense.services.AccountService
@@ -21,6 +21,7 @@ class UploadDocChain implements Action<Chain> {
     private final AccountService accountService
     private final UploadService uploadService
     private final ImageService imageService
+    final Logger log = LoggerFactory.getLogger("ratpack.groovy")
 
     @Inject
     UploadDocChain(AccountService accountService, UploadService uploadService, ImageService imageService){
@@ -31,7 +32,6 @@ class UploadDocChain implements Action<Chain> {
 
     @Override
     void execute(Chain chain) throws Exception {
-        final Logger log = LoggerFactory.getLogger("ratpack.groovy")
         Groovy.chain(chain) {
             post('uploadDoc'){
                 render( parse(jsonNode()).map { JsonNode node ->
