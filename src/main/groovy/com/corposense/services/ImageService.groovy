@@ -8,6 +8,7 @@ import net.sourceforge.tess4j.ITesseract
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 import net.sourceforge.tess4j.util.ImageHelper
+import org.apache.commons.io.FileUtils
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -104,10 +105,14 @@ class ImageService extends PDFStreamEngine {
             super.processOperator(operator, operands)
         }
     }
-    void ExtractImgFromPdf (File fileName){
+    /**
+     * Extract images from parsed pdf file
+     * @param inputFile
+     */
+    void ExtractImgFromPdf (File inputFile){
         PDDocument document = null
         try {
-            document = PDDocument.load(fileName)
+            document = PDDocument.load(inputFile)
             ImageService printer = new ImageService()
             int pageNum = 0
             document.pages.each { PDPage page ->
@@ -123,12 +128,16 @@ class ImageService extends PDFStreamEngine {
             }
         }
     }
-
-    int countImage(File fileName){
+    /**
+     * Count number of images from parsed pdf file
+     * @param inputFile
+     * @return number of images
+     */
+    int countImage(File inputFile){
         PDDocument doc = null
         int countPages
         try {
-            doc = PDDocument.load(fileName)
+            doc = PDDocument.load(inputFile)
             countPages = doc.getNumberOfPages()
         } catch (Exception e){
             log.error("Cannot count pages from PDF (${e.getClass().simpleName}): ${e.message}")
@@ -139,6 +148,11 @@ class ImageService extends PDFStreamEngine {
         }
         return countPages
     }
+    /**
+     * Produce text from parsed pdf file that contain multiple images
+     * @param inputFile
+     * @return text
+     */
     List<String> produceTextForMultipleImg(File inputFile){
 
         int countPages = this.countImage(inputFile)
@@ -153,6 +167,11 @@ class ImageService extends PDFStreamEngine {
         }
         return fullText
     }
+    /**
+     * Generate searchable pdf document form parsed pdf file that contain multiple images
+     * @param inputFile
+     * @return pdf document
+     */
     File producePdfForMultipleImg(File inputFile){
 
         File outputFile = null
@@ -187,15 +206,21 @@ class ImageService extends PDFStreamEngine {
         }
         return outputFile
     }
-    File generateDocument(String fullText , String inputImage){
+    /**
+     * Generate pdf document from parsed html content
+     * @param htmlContent
+     * @param fileName
+     * @return
+     */
+    File htmlToPdf(String htmlContent, String fileName){
         Document document = null
         File doc = null
         try {
             document = new Document(PageSize.LETTER)
-            doc = new File("${Constants.downloadPath}", "${inputImage}.pdf")
+            doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
             FileOutputStream fos = new FileOutputStream(doc.toString())
             // use HTMLConverter
-            HtmlConverter.convertToPdf(fullText, fos)
+            HtmlConverter.convertToPdf(htmlContent, fos)
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
@@ -206,28 +231,44 @@ class ImageService extends PDFStreamEngine {
         }
         return doc
     }
+    /**
+     * Generate pdf document form parsed Html file
+     * @param htmlFile
+     * @param fileName
+     * @return pdf file
+     */
     File htmlToPdf(File htmlFile , String fileName) {
       Document document = null
         File doc = null
+        File imageFolder = null
         try {
             document = new Document(PageSize.LETTER)
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
             // use HTMLConverter
             HtmlConverter.convertToPdf(htmlFile,doc)
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
+            imageFolder = new File("${Constants.downloadPath}" + File.separator + "image")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
             if (document){
                 document.close()
             }
-            if(htmlFile != null){
+            if (htmlFile != null){
                 htmlFile.delete()
+            }
+            if (imageFolder.exists()){
+                FileUtils.cleanDirectory(imageFolder)
+                FileUtils.deleteDirectory(imageFolder)
             }
         }
         return doc
     }
-
+    /**
+     * Produce text from from parsed input image.
+     * @param inputImage
+     * @return Text
+     */
     String produceText(File inputImage){
         String fullText = null
 
@@ -460,12 +501,22 @@ class ImageService extends PDFStreamEngine {
     String getFileNameWithoutExt(File inputFile, String newExt = ''){
         return inputFile.name.with {it.take(it.lastIndexOf('.'))} +newExt
     }
+    /**
+     * Delete Extracted images
+     * @param countPages
+     */
     private void deleteDocument(int countPages){
         for(int i = 1 ; i <= countPages ; i++){
             File outputPdf = new File("${Constants.downloadPath}","ExtractedImage_${i}.pdf")
             outputPdf.delete()
         }
     }
+    /**
+     * Rename file with the given file path and the new file name
+     * @param filePath
+     * @param newFileName
+     * @return new file with the new name
+     */
     File renameFile(String filePath, String newFileName){
         File outputFile = new File(filePath)
         File newFile = new File("${outputFile.getParent()}","${newFileName}${"."}${getImageExt(outputFile)}")
