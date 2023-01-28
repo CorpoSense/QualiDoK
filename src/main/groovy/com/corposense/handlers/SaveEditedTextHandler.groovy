@@ -17,7 +17,7 @@ import static ratpack.jackson.Jackson.jsonNode
 //import groovy.transform.CompileStatic
 
 //@CompileStatic
-class SaveEditedTextChain implements Action<Chain> {
+class SaveEditedTextHandler implements Action<Chain> {
 
     private final AccountService accountService
     private final UploadService uploadService
@@ -25,7 +25,7 @@ class SaveEditedTextChain implements Action<Chain> {
     final Logger log = LoggerFactory.getLogger("ratpack.groovy")
 
     @Inject
-    SaveEditedTextChain(AccountService accountService, UploadService uploadService, ImageService imageService){
+    SaveEditedTextHandler(AccountService accountService, UploadService uploadService, ImageService imageService){
         this.accountService = accountService
         this.uploadService = uploadService
         this.imageService = imageService

@@ -26,7 +26,7 @@ import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 
 //@CompileStatic
 
-class OcrChain implements Action<Chain> {
+class OcrHandler implements Action<Chain> {
 
     private final HttpClient client
     private final AccountService accountService
@@ -42,7 +42,7 @@ class OcrChain implements Action<Chain> {
     final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
 
     @Inject
-    OcrChain(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService){
+    OcrHandler(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService){
         this.client = client
         this.accountService = accountService
         this.uploadService = uploadService

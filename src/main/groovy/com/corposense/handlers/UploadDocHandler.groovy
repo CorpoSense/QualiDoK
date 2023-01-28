@@ -17,14 +17,14 @@ import static ratpack.jackson.Jackson.jsonNode
 //import groovy.transform.CompileStatic
 
 //@CompileStatic
-class UploadDocChain implements Action<Chain> {
+class UploadDocHandler implements Action<Chain> {
     private final AccountService accountService
     private final UploadService uploadService
     private final ImageService imageService
     final Logger log = LoggerFactory.getLogger("ratpack.groovy")
 
     @Inject
-    UploadDocChain(AccountService accountService, UploadService uploadService, ImageService imageService){
+    UploadDocHandler(AccountService accountService, UploadService uploadService, ImageService imageService){
         this.accountService = accountService
         this.uploadService = uploadService
         this.imageService = imageService

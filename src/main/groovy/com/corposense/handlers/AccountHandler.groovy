@@ -13,11 +13,11 @@ import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
 //import groovy.transform.CompileStatic
 
 //@CompileStatic
-class AccountChain implements Action<Chain> {
+class AccountHandler implements Action<Chain> {
     private final AccountService accountService
 
     @Inject
-    AccountChain(AccountService accountService){
+    AccountHandler(AccountService accountService){
         this.accountService = accountService
     }
 
