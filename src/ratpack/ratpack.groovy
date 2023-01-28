@@ -2,10 +2,10 @@ import com.corposense.ConnectionInitializer
 import com.corposense.Constants
 import com.corposense.H2ConnectionDataSource
 import com.corposense.models.Account
-import com.corposense.ratpack.handlers.AccountChain
-import com.corposense.ratpack.handlers.OcrChain
-import com.corposense.ratpack.handlers.SaveEditedTextChain
-import com.corposense.ratpack.handlers.UploadDocChain
+import com.corposense.handlers.AccountHandler
+import com.corposense.handlers.OcrHandler
+import com.corposense.handlers.SaveEditedTextHandler
+import com.corposense.handlers.UploadDocHandler
 import com.corposense.services.AccountService
 import com.zaxxer.hikari.HikariConfig
 
@@ -56,10 +56,10 @@ ratpack {
         bind(H2ConnectionDataSource)
         bind(AccountService)
         bindInstance(Service, new ConnectionInitializer())
-        bind(OcrChain)
-        bind(SaveEditedTextChain)
-        bind(UploadDocChain)
-        bind(AccountChain)
+        bind(OcrHandler)
+        bind(SaveEditedTextHandler)
+        bind(UploadDocHandler)
+        bind(AccountHandler)
 
 
         add Service.startup('startup'){ StartEvent event ->
@@ -123,9 +123,9 @@ ratpack {
             render(view('preview'))
         }
 
-        all(chain(registry.get(SaveEditedTextChain)))
+        all(chain(registry.get(SaveEditedTextHandler)))
 
-        all(chain(registry.get(UploadDocChain)))
+        all(chain(registry.get(UploadDocHandler)))
 
         get("${uploadPath}/:imagePath"){
             response.sendFile(new File("${uploadPath}","${pathTokens['imagePath']}").toPath())
@@ -136,11 +136,11 @@ ratpack {
         }
 
         prefix('upload') {
-            all(chain(registry.get(OcrChain)))
+            all(chain(registry.get(OcrHandler)))
         }
 
         prefix('server') {
-            all(chain(registry.get(AccountChain)))
+            all(chain(registry.get(AccountHandler)))
         }
 
         // Serve public files (assets...)
