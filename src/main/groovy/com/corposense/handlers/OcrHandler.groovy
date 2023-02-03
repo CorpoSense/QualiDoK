@@ -37,7 +37,7 @@ class OcrHandler implements Action<Chain> {
     Path uploadPath = Constants.uploadPath
     final Logger log = LoggerFactory.getLogger("ratpack.groovy")
     final int FOLDER_ID = 4
-    final String[] SUPPORTED_DOCS = ['doc', 'docx']
+    final String[] SUPPORTED_DOCS = ['msword', 'document']
     final String[] SUPPORTED_IMAGES = ['png', 'jpg', 'jpeg']
     final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
 
@@ -145,13 +145,12 @@ class OcrHandler implements Action<Chain> {
                                                             ]))
                                                         }
                                                         //Handle .doc files
-                                                    } else if (fileType.contains('msword')) {
+                                                    } else if (SUPPORTED_DOCS.any {fileType.contains(it)}){
                                                         if (officeService.isPwdProtected(inputFile)) {
-                                                            render(view('preview', ['message' : "Unable to process: document is encrypted"]))
-                                                        }else{
+                                                            render(view('preview', ['message' : "Unable to process: document is password protected"]))
+                                                        }else if (fileType.contains('msword')) {
                                                             //TODO make summernote display images
                                                             String plainText = officeService.wordToHtml(inputFile)
-                                                            //String plainText = officeService.extractTextDoc(inputFile)
                                                             def folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                                             URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
                                                             client.get(uri) { RequestSpec reqSpec ->
@@ -168,41 +167,33 @@ class OcrHandler implements Action<Chain> {
                                                                         'directories'  : directories
                                                                 ]))
                                                             }
+                                                        }else if(fileType.contains('document')) {
+                                                            //Handle .docx files
+                                                            String plainText = officeService.docxToHtml(inputFile)
+                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                            client.get(uri) { RequestSpec reqSpec ->
+                                                                reqSpec.basicAuth(account.username, account.password)
+                                                                reqSpec.headers.set("Accept", 'application/json')
+                                                            }.then { ReceivedResponse res ->
 
-                                                        }}else if(fileType.contains('document')) {
-                                                                //Handle .docx files
-                                                             if (officeService.isPwdProtected(inputFile)) {
-                                                                 render(view('preview', ['message' : "Unable to process: document is encrypted"]))
-                                                             }else{
-                                                                 String plainText = officeService.docxToHtml(inputFile)
-                                                                 //String plainText = officeService.officeDocxToHtml(inputFile)
-                                                                 //String plainText = officeService.extractTextDocx(inputFile)
-                                                                 def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                                 URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                                 client.get(uri) { RequestSpec reqSpec ->
-                                                                     reqSpec.basicAuth(account.username, account.password)
-                                                                     reqSpec.headers.set("Accept", 'application/json')
-                                                                 }.then { ReceivedResponse res ->
+                                                                JsonSlurper jsonSlurper = new JsonSlurper()
+                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
 
-                                                                     JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                     ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
-
-                                                                     render(view('preview', [
-                                                                             'fullText' : plainText,
-                                                                             'fileName'   : fileName,
-                                                                             'directories': directories
-                                                                     ]))
-                                                                 }
-                                                             }
+                                                                render(view('preview', [
+                                                                        'fullText' : plainText,
+                                                                        'fileName'   : fileName,
+                                                                        'directories': directories
+                                                                ]))
+                                                            }
                                                         }
+                                                    }
                                                     break
                                                 case 'produce-pdf':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
                                                     uploadedFile.writeTo(inputFile.newOutputStream())
                                                     String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                     log.info("File type: ${fileType}")
-                                                    // TODO: support doc, docx document
-//                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
                                                     if (fileType.contains('pdf')) {
                                                         // Handle PDF document...
                                                         File outputFile = imageService.producePdfForMultipleImg(inputFile)
@@ -249,10 +240,11 @@ class OcrHandler implements Action<Chain> {
                                                             ]))
                                                         }
                                                         // Handle other type of documents
-                                                    } else if (fileType.contains('msword')) {
+                                                    }else if (SUPPORTED_DOCS.any {fileType.contains(it)}){
                                                         if (officeService.isPwdProtected(inputFile)) {
-                                                            render(view('preview', ['message': "Unable to process: document is encrypted"]))
-                                                        }else {
+                                                            render(view('preview', ['message': "Unable to process: document is password protected"]))
+                                                        }else if (fileType.contains('msword')) {
+                                                            //Handle .doc document
                                                             File htmlFile = officeService.convertDocToHtml(inputFile,fileName)
                                                             File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
                                                             def folderId = request.queryParams['folderId'] ?: FOLDER_ID
@@ -271,12 +263,8 @@ class OcrHandler implements Action<Chain> {
                                                                         'directories'  : directories
                                                                 ]))
                                                             }
-                                                        }
-                                                    }else if(fileType.contains('document')) {
-                                                        //Handle .docx files
-                                                        if (officeService.isPwdProtected(inputFile)) {
-                                                            render(view('preview', ['message': "Unable to process: document is encrypted"]))
-                                                        }else {
+                                                        }else if(fileType.contains('document')) {
+                                                            //Handle .docx files
                                                             File htmlFile = officeService.convertDocxToHtml(inputFile,fileName)
                                                             File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
                                                             def folderId = request.queryParams['folderId'] ?: FOLDER_ID
