@@ -5,13 +5,13 @@ import fr.opensagres.poi.xwpf.converter.core.ImageManager
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLConverter
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLOptions
 import org.apache.commons.io.FileUtils
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.poi.EncryptedDocumentException
-import org.apache.poi.extractor.ExtractorFactory
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.converter.PicturesManager
 import org.apache.poi.hwpf.converter.WordToHtmlConverter
+import org.apache.poi.hwpf.extractor.WordExtractor
 import org.apache.poi.hwpf.usermodel.PictureType
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -146,20 +146,24 @@ class OfficeService {
      * @param inputFile can be .Doc or .Docx
      * @return false
      */
-    static boolean isPwdProtected(File inputFile) {
-        try {
-            ExtractorFactory.createExtractor(inputFile)
-        } catch (EncryptedDocumentException e) {
-            return true
-        } catch (Exception e) {
-            Throwable[] throwables = ExceptionUtils.getThrowables(e)
-            for (Throwable throwable : throwables) {
-                if (throwable instanceof EncryptedDocumentException) {
-                    return true
-                }
+    static boolean isPwdProtected(File inputFile){
+        if(inputFile.toString().endsWith('.doc')){
+            try {
+                HWPFDocument doc = new HWPFDocument(new FileInputStream(inputFile))
+                new WordExtractor(doc)
+            } catch (EncryptedDocumentException e) {
+                return true
             }
+            return false
+        }else if(inputFile.toString().endsWith('.docx')) {
+            try {
+                XWPFDocument docx = new XWPFDocument(new FileInputStream(inputFile))
+                new XWPFWordExtractor(docx)
+            } catch (Exception e) {
+                return true
+            }
+            return false
         }
-        return false
     }
 
 /*
