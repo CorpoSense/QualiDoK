@@ -187,6 +187,24 @@ class OcrHandler implements Action<Chain> {
                                                                 ]))
                                                             }
                                                         }
+                                                    }else if(fileType.contains('text')){
+                                                        String text = officeService.readText(inputFile)
+                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                        client.get(uri) { RequestSpec reqSpec ->
+                                                            reqSpec.basicAuth(account.username, account.password)
+                                                            reqSpec.headers.set("Accept", 'application/json')
+                                                        }.then { ReceivedResponse res ->
+
+                                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                            render(view('preview', [
+                                                                    'fullText': text,
+                                                                    'fileName'     : fileName,
+                                                                    'directories'  : directories
+                                                            ]))
+                                                        }
                                                     }
                                                     break
                                                 case 'produce-pdf':
@@ -283,6 +301,25 @@ class OcrHandler implements Action<Chain> {
                                                                         'directories': directories
                                                                 ]))
                                                             }
+                                                        }
+                                                    }else if(fileType.contains('text')){
+                                                        String text = officeService.readText(inputFile)
+                                                        File pdfFile = imageService.createPdf(inputFile,text)
+                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
+                                                        client.get(uri) { RequestSpec reqSpec ->
+                                                            reqSpec.basicAuth(account.username, account.password)
+                                                            reqSpec.headers.set("Accept", 'application/json')
+                                                        }.then { ReceivedResponse res ->
+
+                                                            JsonSlurper jsonSlurper = new JsonSlurper()
+                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+
+                                                            render(view('preview', [
+                                                                    'outputFile' : pdfFile.path,
+                                                                    'fileName'     : fileName,
+                                                                    'directories'  : directories
+                                                            ]))
                                                         }
                                                     }
                                                     break

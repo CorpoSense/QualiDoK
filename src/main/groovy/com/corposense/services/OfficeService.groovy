@@ -1,6 +1,7 @@
 package com.corposense.services
 
 import com.corposense.Constants
+import com.itextpdf.text.Paragraph
 import fr.opensagres.poi.xwpf.converter.core.ImageManager
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLConverter
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLOptions
@@ -23,7 +24,10 @@ import javax.xml.transform.Transformer
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
-
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 
 
 class OfficeService {
@@ -35,7 +39,7 @@ class OfficeService {
      * @param inputFile
      * @return html content
      */
-    String docxToHtml(File inputFile){
+    String docxToHtml(File inputFile) {
         String htmlData = null
         try {
             InputStream input = new FileInputStream(inputFile)
@@ -44,7 +48,7 @@ class OfficeService {
             //Parse XHTML configuration
             XHTMLOptions options = XHTMLOptions.create()
             //Set the storage path of the image to (downloads/image) (The default storage path is : word/media file )
-            options.setImageManager(new ImageManager((imageFolder),"image"))
+            options.setImageManager(new ImageManager((imageFolder), "image"))
             options.setIgnoreStylesIfUnused(false)
             //Parse the image address (downloads/image) into the generated html tag
             options.getURIResolver()
@@ -54,7 +58,7 @@ class OfficeService {
             docxDocument.close()
             htmlStream.close()
         } catch (IOException e) {
-            log.error ("${e.getClass().simpleName}: ${e.message}")
+            log.error("${e.getClass().simpleName}: ${e.message}")
         }
         return htmlData
     }
@@ -78,7 +82,7 @@ class OfficeService {
             @Override
             String savePicture(byte[] content, PictureType pictureType,
                                String suggestedName, float widthInches, float heightInches) {
-                File file = new File("${Constants.downloadPath}"+ File.separator + suggestedName)
+                File file = new File("${Constants.downloadPath}" + File.separator + suggestedName)
                 FileOutputStream fos
                 try {
                     fos = new FileOutputStream(file)
@@ -114,7 +118,7 @@ class OfficeService {
      */
     File convertDocxToHtml(File inputFile, String fileName) {
         String html = docxToHtml(inputFile)
-        File htmlFile = writeHtmlFile(html,fileName)
+        File htmlFile = writeHtmlFile(html, fileName)
         return htmlFile
     }
 
@@ -124,7 +128,7 @@ class OfficeService {
      * @param fileName
      * @return html file
      */
-    File convertDocToHtml(File inputFile, String fileName){
+    File convertDocToHtml(File inputFile, String fileName) {
         String html = wordToHtml(inputFile)
         File htmlFile = writeHtmlFile(html, fileName)
         return htmlFile
@@ -136,7 +140,7 @@ class OfficeService {
      * @return html file
      */
     static File writeHtmlFile(String htmlContent, String fileName) {
-        File htmlFile = new File("${Constants.downloadPath}", fileName +".html")
+        File htmlFile = new File("${Constants.downloadPath}", fileName + ".html")
         FileUtils.writeStringToFile(htmlFile, htmlContent, "utf-8")
         return htmlFile
     }
@@ -146,8 +150,8 @@ class OfficeService {
      * @param inputFile can be .Doc or .Docx
      * @return false
      */
-    static boolean isPwdProtected(File inputFile){
-        if(inputFile.toString().endsWith('.doc')){
+    static boolean isPwdProtected(File inputFile) {
+        if (inputFile.toString().endsWith('.doc')) {
             try {
                 HWPFDocument doc = new HWPFDocument(new FileInputStream(inputFile))
                 new WordExtractor(doc)
@@ -155,7 +159,7 @@ class OfficeService {
                 return true
             }
             return false
-        }else if(inputFile.toString().endsWith('.docx')) {
+        } else if (inputFile.toString().endsWith('.docx')) {
             try {
                 XWPFDocument docx = new XWPFDocument(new FileInputStream(inputFile))
                 new XWPFWordExtractor(docx)
@@ -165,89 +169,43 @@ class OfficeService {
             return false
         }
     }
-
-/*
-   String officeDocxToHtml(File inputFile) {
-        DocumentConverter converter = new DocumentConverter()
-        Result<String> result = converter.convertToHtml(inputFile)
-        String html = result.getValue() // The generated HTML
-        Set<String> warnings = result.getWarnings() // Any warnings during conversion
-        return html
+    /**
+     * Get content from text file
+     * @param inputFile
+     * @return text
+     */
+    String readText(File inputFile) {
+        readFile(inputFile.toPath())
+//        Path path = Paths.get(inputFile.toString())
+//        StringBuilder text = new StringBuilder()
+//        BufferedReader reader = Files.newBufferedReader(path)
+//        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+//               text.append(line).append(System.getProperty("line.separator"))
+//        }
+//        reader.close()
+//        return text.toString()
+        String data = FileUtils.readFileToString(inputFile, "UTF-8")
+        return data
     }
 
- */
-/*
-    private File createPdf(File inputFile , String text){
-        Document document = null
-        File pdfDoc = null
+    /**
+     * Checks 3 anomalies when reading .txt file : File not found, File empty, File contains only spaces
+     * @param path
+     */
+    static String readFile(Path path) {
+        String fileText
         try {
-            String fileName = imageService.getFileNameWithoutExt(inputFile,'.pdf')
-            pdfDoc = new File("${Constants.downloadPath}", fileName)
-            OutputStream fos = new FileOutputStream(pdfDoc.toString())
-            //create pdf file
-            document = new Document(PageSize.LETTER)
-            PdfWriter.getInstance(document, fos)
-            document.open()
-            document.add(new Paragraph(text))
-            log.info("pdf document will be created at: ${Constants.downloadPath}/${pdfDoc.name}")
-        } catch (Exception e) {
-            log.error ("${e.getClass().simpleName}: ${e.message}")
-        } finally {
-            if (document){
-                document.close()
+            if (Files.size(path) == 0) {
+                throw new RuntimeException("File has zero bytes")
             }
+            fileText = new String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+            if (fileText.trim().isEmpty()) {
+                throw new RuntimeException("File contains only whitespace")
+            }
+            return fileText
+        } catch (IOException e) {
+            throw new RuntimeException(e)
         }
-        return pdfDoc
     }
-
- */
-/*
-    String extractTextDoc(File inputFile){
-        HWPFDocument doc = null
-        WordExtractor wordExtractor = null
-        String text = null
-        try{
-            FileInputStream docFile = new FileInputStream(inputFile)
-            doc = new HWPFDocument(docFile)
-            wordExtractor = new WordExtractor(doc)
-            text = wordExtractor.getText()
-            wordExtractor.close()
-        } catch (Exception e) {
-        log.error ("${e.getClass().simpleName}: ${e.message}")
-        } finally {
-            if(doc){
-                doc.close()
-            }
-            if(wordExtractor){
-                wordExtractor.close()
-            }
-        }
-        return text
-    }
-    String extractTextDocx(File inputFile) {
-        XWPFDocument docx = null
-        XWPFWordExtractor wordExtractor = null
-        String text = null
-        try {
-            FileInputStream docFile = new FileInputStream(inputFile)
-            docx = new XWPFDocument(docFile)
-            wordExtractor = new XWPFWordExtractor(docx)
-            text = wordExtractor.getText()
-            wordExtractor.close()
-        } catch (Exception e) {
-            log.error("${e.getClass().simpleName}: ${e.message}")
-        } finally {
-            if (docx) {
-                docx.close()
-            }
-            if (wordExtractor) {
-                wordExtractor.close()
-            }
-        }
-        return text
-
-    }
-
- */
-
 }
+

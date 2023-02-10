@@ -2,6 +2,8 @@ package com.corposense.services
 
 import com.corposense.Constants
 import com.google.inject.Inject
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.pdf.PdfWriter
 import com.recognition.software.jdeskew.ImageDeskew
 import groovy.transform.CompileStatic
 import net.sourceforge.tess4j.ITesseract
@@ -263,6 +265,34 @@ class ImageService extends PDFStreamEngine {
             }
         }
         return doc
+    }
+    /**
+     * Create pdf file from the given file and text
+     * @param inputFile
+     * @param text
+     * @return pdf file
+     */
+    File createPdf(File inputFile , String text){
+        Document document = null
+        File pdfDoc = null
+        try {
+            String fileName = getFileNameWithoutExt(inputFile,'.pdf')
+            pdfDoc = new File("${Constants.downloadPath}", fileName)
+            OutputStream fos = new FileOutputStream(pdfDoc.toString())
+            //create pdf file
+            document = new Document(PageSize.LETTER)
+            PdfWriter.getInstance(document, fos)
+            document.open()
+            document.add(new Paragraph(text))
+            log.info("pdf document will be created at: ${Constants.downloadPath}/${pdfDoc.name}")
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        } finally {
+            if (document){
+                document.close()
+            }
+        }
+        return pdfDoc
     }
     /**
      * Produce text from from parsed input image.

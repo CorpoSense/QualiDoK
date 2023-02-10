@@ -59,34 +59,6 @@
 </div><!-- #page-content -->
 
 <div th:replace="partials/footer" />
-
-<script type="text/javascript">
-$(function(){
-    var loading = $('#loading');
-    var MINIMUM_FILE_SIZE_KB = 16458;//The number of bytes in a kilobyte.
-
-    $('#doc-upload').on('submit', function(e){
-       $('#msg-warning').addClass('hidden');
-       $('#msg-warning2').addClass('hidden');
-        if (!$('#input-doc').val()) {
-        $('#msg-warning2').addClass('hidden');
-          $('#msg-warning').removeClass('hidden');
-          e.preventDefault();//prevent the page from reloading
-        }else if ($('#input-doc')[0].files[0].size< MINIMUM_FILE_SIZE_KB) {
-          $('#msg-warning').addClass('hidden');
-          $('#msg-warning2').removeClass('hidden');
-          e.preventDefault();//prevent the page from reloading
-        }else{
-            $('#msg-warning').addClass('hidden');
-            $('#msg-warning2').addClass('hidden');
-            loading.show();
-            console.log('Processing...');
-            setTimeout(function(){
-                $(loading).append("You will be redirected...");
-            }, 5000);
-        }
-    });
-});
-</script>
+<script type="text/javascript" th:src="@{/assets/js/upload.js}"></script>
 </body>
 </html>
