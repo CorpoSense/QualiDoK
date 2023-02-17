@@ -19,6 +19,7 @@ import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 
+import java.nio.file.Files
 import java.nio.file.Path
 
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
@@ -87,7 +88,7 @@ class OcrHandler implements Action<Chain> {
                                             switch (typeOcr) {
                                                 case 'extract-text':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                                    uploadedFile.writeTo(inputFile.newOutputStream())
+                                                    Files.write(inputFile.toPath(), uploadedFile.getBytes())
                                                     String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                     log.info("File type: ${fileType}")
 
@@ -104,7 +105,7 @@ class OcrHandler implements Action<Chain> {
                                                         }.then { ReceivedResponse res ->
 
                                                             JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                             render(view('preview', [
                                                                     'message'     : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
@@ -133,7 +134,7 @@ class OcrHandler implements Action<Chain> {
                                                         }.then { ReceivedResponse res ->
 
                                                             JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                             render(view('preview', [
                                                                     'message'    : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
@@ -159,7 +160,7 @@ class OcrHandler implements Action<Chain> {
                                                             }.then { ReceivedResponse res ->
 
                                                                 JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                                 render(view('preview', [
                                                                         'fullText': plainText,
@@ -178,7 +179,7 @@ class OcrHandler implements Action<Chain> {
                                                             }.then { ReceivedResponse res ->
 
                                                                 JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                                 render(view('preview', [
                                                                         'fullText' : plainText,
@@ -197,7 +198,7 @@ class OcrHandler implements Action<Chain> {
                                                         }.then { ReceivedResponse res ->
 
                                                             JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                             render(view('preview', [
                                                                     'fullText': text,
@@ -209,7 +210,7 @@ class OcrHandler implements Action<Chain> {
                                                     break
                                                 case 'produce-pdf':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                                    uploadedFile.writeTo(inputFile.newOutputStream())
+                                                    Files.write(inputFile.toPath(), uploadedFile.getBytes())
                                                     String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                     log.info("File type: ${fileType}")
                                                     if (fileType.contains('pdf')) {
@@ -223,7 +224,7 @@ class OcrHandler implements Action<Chain> {
                                                             reqSpec.headers.set("Accept", 'application/json')
                                                         }.then { ReceivedResponse res ->
                                                             JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                             render(view('preview', [
                                                                     'message'     : ('Document generated successfully.'),
@@ -247,7 +248,7 @@ class OcrHandler implements Action<Chain> {
                                                             reqSpec.headers.set("Accept", 'application/json')
                                                         }.then { ReceivedResponse res ->
                                                             JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                             render(view('preview', [
                                                                     'message'    : 'Document generated successfully.',
@@ -273,7 +274,7 @@ class OcrHandler implements Action<Chain> {
                                                             }.then { ReceivedResponse res ->
 
                                                                 JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                                 render(view('preview', [
                                                                         'outputFile': pdfDoc.path,
@@ -293,7 +294,7 @@ class OcrHandler implements Action<Chain> {
                                                             }.then { ReceivedResponse res ->
 
                                                                 JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                                 render(view('preview', [
                                                                         'outputFile' : pdfDoc.path,
@@ -313,7 +314,7 @@ class OcrHandler implements Action<Chain> {
                                                         }.then { ReceivedResponse res ->
 
                                                             JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
+                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
 
                                                             render(view('preview', [
                                                                     'outputFile' : pdfFile.path,

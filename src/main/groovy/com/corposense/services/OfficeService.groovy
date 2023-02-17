@@ -1,7 +1,6 @@
 package com.corposense.services
 
 import com.corposense.Constants
-import com.itextpdf.text.Paragraph
 import fr.opensagres.poi.xwpf.converter.core.ImageManager
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLConverter
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLOptions
@@ -176,16 +175,14 @@ class OfficeService {
      */
     String readText(File inputFile) {
         readFile(inputFile.toPath())
-//        Path path = Paths.get(inputFile.toString())
-//        StringBuilder text = new StringBuilder()
-//        BufferedReader reader = Files.newBufferedReader(path)
-//        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-//               text.append(line).append(System.getProperty("line.separator"))
-//        }
-//        reader.close()
-//        return text.toString()
-        String data = FileUtils.readFileToString(inputFile, "UTF-8")
-        return data
+        Path path = Paths.get(inputFile.toString())
+        StringBuilder text = new StringBuilder()
+        BufferedReader reader = Files.newBufferedReader(path)
+        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+            text.append(line).append(System.getProperty("line.separator"))
+        }
+        reader.close()
+        return text.toString()
     }
 
     /**
