@@ -3,6 +3,7 @@ package com.corposense.handlers
 import com.corposense.Constants
 import com.corposense.models.Account
 import com.corposense.services.AccountService
+import com.corposense.services.DirectoriesService
 import com.corposense.services.ImageService
 import com.corposense.services.OfficeService
 import com.corposense.services.UploadService
@@ -10,6 +11,7 @@ import com.google.inject.Inject
 import groovy.json.JsonSlurper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import ratpack.exec.Promise
 import ratpack.form.Form
 import ratpack.form.UploadedFile
 import ratpack.func.Action
@@ -85,28 +87,24 @@ class OcrHandler implements Action<Chain> {
                                             String typeOcr = form.get('type-ocr')
                                             log.info("Type of processing: ${typeOcr}")
 
+                                            Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                                            def DirectoriesService = new DirectoriesService(client)
+                                            Promise<ArrayList> directoriesPromise = DirectoriesService.listDirectories(account.url,
+                                                                                                                        account.username,
+                                                                                                                        account.password,
+                                                                                                                        folderId)
                                             switch (typeOcr) {
                                                 case 'extract-text':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                                    Files.write(inputFile.toPath(), uploadedFile.getBytes())
+                                                    Files.write(inputFile.toPath(), uploadedFile.bytes)
                                                     String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                     log.info("File type: ${fileType}")
 
-//                                        if (SUPPORTED_DOCS.any {fileType.contains(it)}){...}
                                                     if (fileType.contains('pdf')) {
                                                         // Handle PDF document...
                                                         List<String> fullText = imageService.produceTextForMultipleImg(inputFile)
                                                         // List of directories
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
-
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                        directoriesPromise.then { directories ->
                                                             render(view('preview', [
                                                                     'message'     : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
                                                                     'inputPdfFile': inputFile.path,
@@ -119,30 +117,20 @@ class OcrHandler implements Action<Chain> {
                                                     } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
                                                         // Handle image document
                                                         String fullText = imageService.produceText(inputFile)
-//                                                    LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
-//                                                    Language detectedLanguage = detector.detectLanguageOf(fullText)
-//                                                    def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
-//                                                    log.info("detectedLanguage: ${detectedLanguage}")
-
+//                                                        LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
+//                                                        Language detectedLanguage = detector.detectLanguageOf(fullText)
+//                                                        def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
+//                                                        log.info("detectedLanguage: ${detectedLanguage}")
 
                                                         // List of directories
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
-
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                        directoriesPromise.then { directories ->
                                                             render(view('preview', [
                                                                     'message'    : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
                                                                     'inputImage' : inputFile.path,
                                                                     'fileName'   : fileName,
                                                                     'fullText'   : fullText,
                                                                     'directories': directories
-//                                                           'detectedLanguage': detectedLanguage
+                                                                    //'detectedLanguage': detectedLanguage
                                                             ]))
                                                         }
                                                         //Handle .doc files
@@ -152,16 +140,7 @@ class OcrHandler implements Action<Chain> {
                                                         }else if (fileType.contains('msword')) {
                                                             //TODO make summernote display images
                                                             String plainText = officeService.wordToHtml(inputFile)
-                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                            client.get(uri) { RequestSpec reqSpec ->
-                                                                reqSpec.basicAuth(account.username, account.password)
-                                                                reqSpec.headers.set("Accept", 'application/json')
-                                                            }.then { ReceivedResponse res ->
-
-                                                                JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                            directoriesPromise.then { directories ->
                                                                 render(view('preview', [
                                                                         'fullText': plainText,
                                                                         'fileName'     : fileName,
@@ -171,16 +150,7 @@ class OcrHandler implements Action<Chain> {
                                                         }else if(fileType.contains('document')) {
                                                             //Handle .docx files
                                                             String plainText = officeService.docxToHtml(inputFile)
-                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                            client.get(uri) { RequestSpec reqSpec ->
-                                                                reqSpec.basicAuth(account.username, account.password)
-                                                                reqSpec.headers.set("Accept", 'application/json')
-                                                            }.then { ReceivedResponse res ->
-
-                                                                JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                            directoriesPromise.then { directories ->
                                                                 render(view('preview', [
                                                                         'fullText' : plainText,
                                                                         'fileName'   : fileName,
@@ -190,16 +160,7 @@ class OcrHandler implements Action<Chain> {
                                                         }
                                                     }else if(fileType.contains('text')){
                                                         String text = officeService.readText(inputFile)
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
-
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                        directoriesPromise.then { directories ->
                                                             render(view('preview', [
                                                                     'fullText': text,
                                                                     'fileName'     : fileName,
@@ -210,22 +171,14 @@ class OcrHandler implements Action<Chain> {
                                                     break
                                                 case 'produce-pdf':
                                                     File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                                    Files.write(inputFile.toPath(), uploadedFile.getBytes())
+                                                    Files.write(inputFile.toPath(), uploadedFile.bytes)
                                                     String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                     log.info("File type: ${fileType}")
                                                     if (fileType.contains('pdf')) {
                                                         // Handle PDF document...
                                                         File outputFile = imageService.producePdfForMultipleImg(inputFile)
                                                         // List of directories
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                        directoriesPromise.then { directories ->
                                                             render(view('preview', [
                                                                     'message'     : ('Document generated successfully.'),
                                                                     'inputPdfFile': inputFile.path,
@@ -235,21 +188,11 @@ class OcrHandler implements Action<Chain> {
                                                                     //'detectedLanguage': detectedLanguage
                                                             ]))
                                                         }
-
                                                     } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
                                                         // Handle image document (TODO: make visibleImageLayer dynamic)
                                                         File outputFile = imageService.producePdf(inputFile, 0)
-
                                                         // List of directories
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                        directoriesPromise.then { directories ->
                                                             render(view('preview', [
                                                                     'message'    : 'Document generated successfully.',
                                                                     'inputImage' : inputFile.path,
@@ -266,16 +209,7 @@ class OcrHandler implements Action<Chain> {
                                                             //Handle .doc document
                                                             File htmlFile = officeService.convertDocToHtml(inputFile,fileName)
                                                             File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
-                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                            client.get(uri) { RequestSpec reqSpec ->
-                                                                reqSpec.basicAuth(account.username, account.password)
-                                                                reqSpec.headers.set("Accept", 'application/json')
-                                                            }.then { ReceivedResponse res ->
-
-                                                                JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                            directoriesPromise.then { directories ->
                                                                 render(view('preview', [
                                                                         'outputFile': pdfDoc.path,
                                                                         'fileName'     : fileName,
@@ -286,16 +220,7 @@ class OcrHandler implements Action<Chain> {
                                                             //Handle .docx files
                                                             File htmlFile = officeService.convertDocxToHtml(inputFile,fileName)
                                                             File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
-                                                            def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                            URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                            client.get(uri) { RequestSpec reqSpec ->
-                                                                reqSpec.basicAuth(account.username, account.password)
-                                                                reqSpec.headers.set("Accept", 'application/json')
-                                                            }.then { ReceivedResponse res ->
-
-                                                                JsonSlurper jsonSlurper = new JsonSlurper()
-                                                                ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                            directoriesPromise.then { directories ->
                                                                 render(view('preview', [
                                                                         'outputFile' : pdfDoc.path,
                                                                         'fileName'   : fileName,
@@ -306,16 +231,7 @@ class OcrHandler implements Action<Chain> {
                                                     }else if(fileType.contains('text')){
                                                         String text = officeService.readText(inputFile)
                                                         File pdfFile = imageService.createPdf(inputFile,text)
-                                                        def folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                                        URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                                                        client.get(uri) { RequestSpec reqSpec ->
-                                                            reqSpec.basicAuth(account.username, account.password)
-                                                            reqSpec.headers.set("Accept", 'application/json')
-                                                        }.then { ReceivedResponse res ->
-
-                                                            JsonSlurper jsonSlurper = new JsonSlurper()
-                                                            ArrayList directories = jsonSlurper.parseText(res.body.text)
-
+                                                        directoriesPromise.then { directories ->
                                                             render(view('preview', [
                                                                     'outputFile' : pdfFile.path,
                                                                     'fileName'     : fileName,
