@@ -1,10 +1,21 @@
 package com.corposense.services
 
 import com.corposense.Constants
+import com.itextpdf.text.pdf.PdfReader
+import com.itextpdf.text.pdf.parser.PdfTextExtractor
 import fr.opensagres.poi.xwpf.converter.core.ImageManager
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLConverter
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLOptions
+import net.sourceforge.tess4j.ITesseract
+import net.sourceforge.tess4j.Tesseract
 import org.apache.commons.io.FileUtils
+import org.apache.pdfbox.cos.COSName
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDDocumentInformation
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDResources
+import org.apache.pdfbox.pdmodel.font.PDFont
+import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.poi.EncryptedDocumentException
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.converter.PicturesManager
@@ -143,11 +154,32 @@ class OfficeService {
         FileUtils.writeStringToFile(htmlFile, htmlContent, "utf-8")
         return htmlFile
     }
+    /**
+     * Check whether the pdf document is searchable or not.
+     * @param inputFile
+     * @throws IOException
+     * @return result as a boolean value
+     */
+     boolean isSearchablePdf(File inputFile) throws IOException {
+         String text = null
+         PdfReader reader = new PdfReader(new FileInputStream(inputFile))
+         for (int i = 1; i <= reader.getNumberOfPages(); i++) {
+            text = PdfTextExtractor.getTextFromPage(reader, i)
+         }
+         // Check if the extracted text is empty or not
+         if (text != null && !text.isEmpty()) {
+             // If the extracted text is not empty, the PDF is considered searchable
+             return true
+         } else {
+             // If the extracted text is empty, the PDF is considered not searchable
+             return false
+         }
+     }
 
     /**
-     * Tests whether the input document is password protected
+     * Tests whether the input document is password protected or not
      * @param inputFile can be .Doc or .Docx
-     * @return false
+     * @return result as a boolean value
      */
     static boolean isPwdProtected(File inputFile) {
         if (inputFile.toString().endsWith('.doc')) {

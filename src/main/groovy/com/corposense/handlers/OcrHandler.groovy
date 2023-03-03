@@ -102,17 +102,21 @@ class OcrHandler implements Action<Chain> {
 
                                                     if (fileType.contains('pdf')) {
                                                         // Handle PDF document...
-                                                        List<String> fullText = imageService.produceTextForMultipleImg(inputFile)
-                                                        // List of directories
-                                                        directoriesPromise.then { directories ->
-                                                            render(view('preview', [
-                                                                    'message'     : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
-                                                                    'inputPdfFile': inputFile.path,
-                                                                    'fileName'    : fileName,
-                                                                    'fullText'    : fullText,
-                                                                    'directories' : directories
-                                                                    //'detectedLanguage': detectedLanguage
-                                                            ]))
+                                                        if(!officeService.isSearchablePdf(inputFile)){
+                                                            List<String> fullText = imageService.produceTextForMultipleImg(inputFile)
+                                                            // List of directories
+                                                            directoriesPromise.then { directories ->
+                                                                render(view('preview', [
+                                                                        'message'     : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
+                                                                        'inputPdfFile': inputFile.path,
+                                                                        'fileName'    : fileName,
+                                                                        'fullText'    : fullText,
+                                                                        'directories' : directories
+                                                                        //'detectedLanguage': detectedLanguage
+                                                                ]))
+                                                            }
+                                                        }else{
+                                                            render(view('preview', ['message':'The PDF document is searchable']))
                                                         }
                                                     } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
                                                         // Handle image document
