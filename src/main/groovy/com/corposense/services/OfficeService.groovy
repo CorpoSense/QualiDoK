@@ -3,19 +3,10 @@ package com.corposense.services
 import com.corposense.Constants
 import com.itextpdf.text.pdf.PdfReader
 import com.itextpdf.text.pdf.parser.PdfTextExtractor
-import fr.opensagres.poi.xwpf.converter.core.ImageManager
+import fr.opensagres.poi.xwpf.converter.xhtml.Base64EmbedImgManager
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLConverter
 import fr.opensagres.poi.xwpf.converter.xhtml.XHTMLOptions
-import net.sourceforge.tess4j.ITesseract
-import net.sourceforge.tess4j.Tesseract
 import org.apache.commons.io.FileUtils
-import org.apache.pdfbox.cos.COSName
-import org.apache.pdfbox.pdmodel.PDDocument
-import org.apache.pdfbox.pdmodel.PDDocumentInformation
-import org.apache.pdfbox.pdmodel.PDPage
-import org.apache.pdfbox.pdmodel.PDResources
-import org.apache.pdfbox.pdmodel.font.PDFont
-import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.poi.EncryptedDocumentException
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.converter.PicturesManager
@@ -54,14 +45,15 @@ class OfficeService {
         try {
             InputStream input = new FileInputStream(inputFile)
             XWPFDocument docxDocument = new XWPFDocument(input)
-            File imageFolder = new File("${Constants.downloadPath}")
             //Parse XHTML configuration
             XHTMLOptions options = XHTMLOptions.create()
             //Set the storage path of the image to (downloads/image) (The default storage path is : word/media file )
-            options.setImageManager(new ImageManager((imageFolder), "image"))
+            //File imageFolder = new File("${Constants.downloadPath}")
+            //options.setImageManager(new ImageManager((imageFolder), "image"))
             options.setIgnoreStylesIfUnused(false)
+            options.setImageManager(new Base64EmbedImgManager())
             //Parse the image address (downloads/image) into the generated html tag
-            options.getURIResolver()
+            //options.getURIResolver()
             ByteArrayOutputStream htmlStream = new ByteArrayOutputStream()
             XHTMLConverter.getInstance().convert(docxDocument, htmlStream, options)
             htmlData = htmlStream.toString()
