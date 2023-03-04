@@ -77,14 +77,19 @@ class OfficeService {
                         .newDocument())
         /*
         Extract Image
-        In order to extract out the image, we have to set the call back functions when converter
+        In order to extract out the image, we have to set the callback functions when converter
         handling the image in doc. And the converter lib provide a class to do this:
          */
         wordToHtmlConverter.setPicturesManager(new PicturesManager() {
             @Override
             String savePicture(byte[] content, PictureType pictureType,
                                String suggestedName, float widthInches, float heightInches) {
-                File file = new File("${Constants.downloadPath}" + File.separator + suggestedName)
+                // Encode the image content as base64.
+                String base64Image = Base64.getEncoder().encodeToString(content)
+                return "data:image/" + pictureType.getExtension() + ";base64," + base64Image
+
+                //You can use this if you want to save the extracted images as a file.
+                /*File file = new File("${Constants.downloadPath}" + File.separator + suggestedName)
                 FileOutputStream fos
                 try {
                     fos = new FileOutputStream(file)
@@ -94,6 +99,7 @@ class OfficeService {
                     e.printStackTrace()
                 }
                 return suggestedName
+                 */
             }
         })
         wordToHtmlConverter.processDocument(wordDocument)
