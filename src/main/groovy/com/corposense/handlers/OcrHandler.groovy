@@ -179,18 +179,30 @@ class OcrHandler implements Action<Chain> {
                                                     String fileName = imageService.getFileNameWithoutExt(inputFile)
                                                     log.info("File type: ${fileType}")
                                                     if (fileType.contains('pdf')) {
-                                                        // Handle PDF document...
-                                                        File outputFile = imageService.producePdfForMultipleImg(inputFile)
-                                                        // List of directories
-                                                        directoriesPromise.then { directories ->
-                                                            render(view('preview', [
-                                                                    'message'     : ('Document generated successfully.'),
-                                                                    'inputPdfFile': inputFile.path,
-                                                                    'fileName'    : fileName,
-                                                                    'outputFile'  : outputFile,
-                                                                    'directories' : directories
-                                                                    //'detectedLanguage': detectedLanguage
-                                                            ]))
+                                                        if(!officeService.isSearchablePdf(inputFile)){
+                                                            // Handle PDF document...
+                                                            File outputFile = imageService.producePdfForMultipleImg(inputFile)
+                                                            // List of directories
+                                                            directoriesPromise.then { directories ->
+                                                                render(view('preview', [
+                                                                        'message'     : ('Document generated successfully.'),
+                                                                        'inputPdfFile': inputFile.path,
+                                                                        'fileName'    : fileName,
+                                                                        'outputFile'  : outputFile,
+                                                                        'directories' : directories
+                                                                        //'detectedLanguage': detectedLanguage
+                                                                ]))
+                                                            }
+                                                        }else{
+                                                            directoriesPromise.then { directories ->
+                                                                render(view('preview', [
+                                                                        'message'     : ('Document generated successfully.'),
+                                                                        'fileName'    : fileName,
+                                                                        'outputFile'  : inputFile.path,
+                                                                        'directories' : directories
+                                                                        //'detectedLanguage': detectedLanguage
+                                                                ]))
+                                                            }
                                                         }
                                                     } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
                                                         // Handle image document (TODO: make visibleImageLayer dynamic)

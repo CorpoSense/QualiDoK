@@ -242,14 +242,15 @@ class ImageService extends PDFStreamEngine {
     File htmlToPdf(File htmlFile , String fileName) {
       Document document = null
         File doc = null
-        File imageFolder = null
+        //File imageFolder = null
         try {
             document = new Document(PageSize.LETTER)
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
+
             // use HTMLConverter
             HtmlConverter.convertToPdf(htmlFile,doc)
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
-            imageFolder = new File("${Constants.downloadPath}" + File.separator + "image")
+            //imageFolder = new File("${Constants.downloadPath}" + File.separator + "image")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
@@ -259,10 +260,10 @@ class ImageService extends PDFStreamEngine {
             if (htmlFile != null){
                 htmlFile.delete()
             }
-            if (imageFolder.exists()){
-                FileUtils.cleanDirectory(imageFolder)
-                FileUtils.deleteDirectory(imageFolder)
-            }
+//            if (imageFolder.exists()){
+//                FileUtils.cleanDirectory(imageFolder)
+//                FileUtils.deleteDirectory(imageFolder)
+//            }
         }
         return doc
     }
