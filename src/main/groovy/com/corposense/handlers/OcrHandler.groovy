@@ -93,19 +93,17 @@ class OcrHandler implements Action<Chain> {
                                                                                                                         account.username,
                                                                                                                         account.password,
                                                                                                                         folderId)
-                                            switch (typeOcr) {
-                                                case 'extract-text':
-                                                    File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                                    Files.write(inputFile.toPath(), uploadedFile.bytes)
-                                                    String fileName = imageService.getFileNameWithoutExt(inputFile)
-                                                    log.info("File type: ${fileType}")
-
-                                                    if (fileType.contains('pdf')) {
-                                                        // Handle PDF document...
-                                                        if(!officeService.isSearchablePdf(inputFile)){
-                                                            List<String> fullText = imageService.produceTextForMultipleImg(inputFile)
-                                                            // List of directories
-                                                            directoriesPromise.then { directories ->
+                                            directoriesPromise.then { directories ->
+                                                switch (typeOcr) {
+                                                    case 'extract-text':
+                                                        File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                                        Files.write(inputFile.toPath(), uploadedFile.bytes)
+                                                        String fileName = imageService.getFileNameWithoutExt(inputFile)
+                                                        log.info("File type: ${fileType}")
+                                                        if (fileType.contains('pdf')) {
+                                                            // Handle PDF document...
+                                                            if (!officeService.isSearchablePdf(inputFile)) {
+                                                                List<String> fullText = imageService.produceTextForMultipleImg(inputFile)
                                                                 render(view('preview', [
                                                                         'message'     : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
                                                                         'inputPdfFile': inputFile.path,
@@ -114,20 +112,16 @@ class OcrHandler implements Action<Chain> {
                                                                         'directories' : directories
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
+                                                            } else {
+                                                                render(view('preview', ['message': 'The PDF document is searchable']))
                                                             }
-                                                        }else{
-                                                            render(view('preview', ['message':'The PDF document is searchable']))
-                                                        }
-                                                    } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
-                                                        // Handle image document
-                                                        String fullText = imageService.produceText(inputFile)
-//                                                        LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
-//                                                        Language detectedLanguage = detector.detectLanguageOf(fullText)
-//                                                        def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
-//                                                        log.info("detectedLanguage: ${detectedLanguage}")
-
-                                                        // List of directories
-                                                        directoriesPromise.then { directories ->
+                                                        } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
+                                                            // Handle image document
+                                                            String fullText = imageService.produceText(inputFile)
+    //                                                        LanguageDetector detector = LanguageDetectorBuilder.fromLanguages(ENGLISH, ARABIC, FRENCH, GERMAN, SPANISH).build()
+    //                                                        Language detectedLanguage = detector.detectLanguageOf(fullText)
+    //                                                        def confidenceValues = detector.computeLanguageConfidenceValues(text: "Coding is fun.")
+    //                                                        log.info("detectedLanguage: ${detectedLanguage}")
                                                             render(view('preview', [
                                                                     'message'    : (fullText ? 'Image processed successfully.' : 'No output can be found.'),
                                                                     'inputImage' : inputFile.path,
@@ -136,54 +130,46 @@ class OcrHandler implements Action<Chain> {
                                                                     'directories': directories
                                                                     //'detectedLanguage': detectedLanguage
                                                             ]))
-                                                        }
-                                                        //Handle .doc files
-                                                    } else if (SUPPORTED_DOCS.any {fileType.contains(it)}){
-                                                        if (officeService.isPwdProtected(inputFile)) {
-                                                            render(view('preview', ['message' : "Unable to process: document is password protected"]))
-                                                        }else if (fileType.contains('msword')) {
-                                                            //TODO make summernote display images
-                                                            String plainText = officeService.wordToHtml(inputFile)
-                                                            directoriesPromise.then { directories ->
+                                                            //Handle .doc files
+                                                        } else if (SUPPORTED_DOCS.any { fileType.contains(it) }) {
+                                                            if (officeService.isPwdProtected(inputFile)) {
+                                                                render(view('preview', ['message': "Unable to process: document is password protected"]))
+                                                            } else if (fileType.contains('msword')) {
+                                                                //TODO make summernote display images
+                                                                String plainText = officeService.wordToHtml(inputFile)
                                                                 render(view('preview', [
-                                                                        'fullText': plainText,
-                                                                        'fileName'     : fileName,
-                                                                        'directories'  : directories
+                                                                        'fullText'   : plainText,
+                                                                        'fileName'   : fileName,
+                                                                        'directories': directories
                                                                 ]))
-                                                            }
-                                                        }else if(fileType.contains('document')) {
-                                                            //Handle .docx files
-                                                            String plainText = officeService.docxToHtml(inputFile)
-                                                            directoriesPromise.then { directories ->
+                                                            } else if (fileType.contains('document')) {
+                                                                //Handle .docx files
+                                                                String plainText = officeService.docxToHtml(inputFile)
                                                                 render(view('preview', [
-                                                                        'fullText' : plainText,
+                                                                        'fullText'   : plainText,
                                                                         'fileName'   : fileName,
                                                                         'directories': directories
                                                                 ]))
                                                             }
-                                                        }
-                                                    }else if(fileType.contains('text')){
-                                                        String text = officeService.readText(inputFile)
-                                                        directoriesPromise.then { directories ->
+                                                        } else if (fileType.contains('text')) {
+                                                            String text = officeService.readText(inputFile)
                                                             render(view('preview', [
-                                                                    'fullText': text,
-                                                                    'fileName'     : fileName,
-                                                                    'directories'  : directories
+                                                                    'fullText'   : text,
+                                                                    'fileName'   : fileName,
+                                                                    'directories': directories
                                                             ]))
                                                         }
-                                                    }
-                                                    break
-                                                case 'produce-pdf':
-                                                    File inputFile = new File("${uploadPath}", uploadedFile.fileName)
-                                                    Files.write(inputFile.toPath(), uploadedFile.bytes)
-                                                    String fileName = imageService.getFileNameWithoutExt(inputFile)
-                                                    log.info("File type: ${fileType}")
-                                                    if (fileType.contains('pdf')) {
-                                                        if(!officeService.isSearchablePdf(inputFile)){
-                                                            // Handle PDF document...
-                                                            File outputFile = imageService.producePdfForMultipleImg(inputFile)
-                                                            // List of directories
-                                                            directoriesPromise.then { directories ->
+                                                        break
+                                                    case 'produce-pdf':
+                                                        File inputFile = new File("${uploadPath}", uploadedFile.fileName)
+                                                        Files.write(inputFile.toPath(), uploadedFile.bytes)
+                                                        String fileName = imageService.getFileNameWithoutExt(inputFile)
+                                                        log.info("File type: ${fileType}")
+                                                        if (fileType.contains('pdf')) {
+                                                            if (!officeService.isSearchablePdf(inputFile)) {
+                                                                // Handle PDF document...
+                                                                File outputFile = imageService.producePdfForMultipleImg(inputFile)
+                                                                // List of directories
                                                                 render(view('preview', [
                                                                         'message'     : ('Document generated successfully.'),
                                                                         'inputPdfFile': inputFile.path,
@@ -192,23 +178,18 @@ class OcrHandler implements Action<Chain> {
                                                                         'directories' : directories
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
-                                                            }
-                                                        }else{
-                                                            directoriesPromise.then { directories ->
+                                                            } else {
                                                                 render(view('preview', [
-                                                                        'message'     : ('Document generated successfully.'),
-                                                                        'fileName'    : fileName,
-                                                                        'outputFile'  : inputFile.path,
-                                                                        'directories' : directories
+                                                                        'message'    : ('Document generated successfully.'),
+                                                                        'fileName'   : fileName,
+                                                                        'outputFile' : inputFile.path,
+                                                                        'directories': directories
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
                                                             }
-                                                        }
-                                                    } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
-                                                        // Handle image document (TODO: make visibleImageLayer dynamic)
-                                                        File outputFile = imageService.producePdf(inputFile, 0)
-                                                        // List of directories
-                                                        directoriesPromise.then { directories ->
+                                                        } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
+                                                            // Handle image document (TODO: make visibleImageLayer dynamic)
+                                                            File outputFile = imageService.producePdf(inputFile, 0)
                                                             render(view('preview', [
                                                                     'message'    : 'Document generated successfully.',
                                                                     'inputImage' : inputFile.path,
@@ -216,49 +197,43 @@ class OcrHandler implements Action<Chain> {
                                                                     'outputFile' : outputFile.path,
                                                                     'directories': directories
                                                             ]))
-                                                        }
-                                                        // Handle other type of documents
-                                                    }else if (SUPPORTED_DOCS.any {fileType.contains(it)}){
-                                                        if (officeService.isPwdProtected(inputFile)) {
-                                                            render(view('preview', ['message': "Unable to process: document is password protected"]))
-                                                        }else if (fileType.contains('msword')) {
-                                                            //Handle .doc document
-                                                            File htmlFile = officeService.convertDocToHtml(inputFile,fileName)
-                                                            File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
-                                                            directoriesPromise.then { directories ->
+                                                            // Handle DOC[x]
+                                                        } else if (SUPPORTED_DOCS.any { fileType.contains(it) }) {
+                                                            if (officeService.isPwdProtected(inputFile)) {
+                                                                render(view('preview', ['message': "Unable to process: document is password protected"]))
+                                                            } else if (fileType.contains('msword')) {
+                                                                //Handle .doc document
+                                                                File htmlFile = officeService.convertDocToHtml(inputFile, fileName)
+                                                                File pdfDoc = imageService.htmlToPdf(htmlFile, fileName)
                                                                 render(view('preview', [
-                                                                        'outputFile': pdfDoc.path,
-                                                                        'fileName'     : fileName,
-                                                                        'directories'  : directories
+                                                                        'outputFile' : pdfDoc.path,
+                                                                        'fileName'   : fileName,
+                                                                        'directories': directories
                                                                 ]))
-                                                            }
-                                                        }else if(fileType.contains('document')) {
-                                                            //Handle .docx files
-                                                            File htmlFile = officeService.convertDocxToHtml(inputFile,fileName)
-                                                            File pdfDoc = imageService.htmlToPdf(htmlFile,fileName)
-                                                            directoriesPromise.then { directories ->
+                                                            } else if (fileType.contains('document')) {
+                                                                //Handle .docx files
+                                                                File htmlFile = officeService.convertDocxToHtml(inputFile, fileName)
+                                                                File pdfDoc = imageService.htmlToPdf(htmlFile, fileName)
                                                                 render(view('preview', [
                                                                         'outputFile' : pdfDoc.path,
                                                                         'fileName'   : fileName,
                                                                         'directories': directories
                                                                 ]))
                                                             }
-                                                        }
-                                                    }else if(fileType.contains('text')){
-                                                        String text = officeService.readText(inputFile)
-                                                        File pdfFile = imageService.createPdf(inputFile,text)
-                                                        directoriesPromise.then { directories ->
+                                                        } else if (fileType.contains('text')) {
+                                                            String text = officeService.readText(inputFile)
+                                                            File pdfFile = imageService.createPdf(inputFile, text)
                                                             render(view('preview', [
                                                                     'outputFile' : pdfFile.path,
-                                                                    'fileName'     : fileName,
-                                                                    'directories'  : directories
+                                                                    'fileName'   : fileName,
+                                                                    'directories': directories
                                                             ]))
                                                         }
-                                                    }
-                                                    break
-                                                default:
-                                                    render('Error: Invalid option value.')
-                                                    return
+                                                        break
+                                                    default:
+                                                        render('Error: Invalid option value.')
+                                                        return
+                                               }
                                             }
                                         } else {
                                             render(view('preview', ['message': "${files.size()} document(s)"]))
