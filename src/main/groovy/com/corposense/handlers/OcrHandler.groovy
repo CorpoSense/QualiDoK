@@ -113,7 +113,13 @@ class OcrHandler implements Action<Chain> {
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
                                                             } else {
-                                                                render(view('preview', ['message': 'The PDF document is searchable']))
+                                                                render(view('preview', [
+                                                                        'message'    : ('The PDF document is searchable'),
+                                                                        'fileName'   : fileName,
+                                                                        'outputFile' : inputFile.path,
+                                                                        'directories': directories
+                                                                        //'detectedLanguage': detectedLanguage
+                                                                ]))
                                                             }
                                                         } else if (SUPPORTED_IMAGES.any { fileType.contains(it) }) {
                                                             // Handle image document
@@ -180,7 +186,7 @@ class OcrHandler implements Action<Chain> {
                                                                 ]))
                                                             } else {
                                                                 render(view('preview', [
-                                                                        'message'    : ('Document generated successfully.'),
+                                                                        'message'    : ('The PDF document is searchable'),
                                                                         'fileName'   : fileName,
                                                                         'outputFile' : inputFile.path,
                                                                         'directories': directories
