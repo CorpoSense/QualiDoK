@@ -141,7 +141,7 @@ class OcrHandler implements Action<Chain> {
                                                             if (officeService.isPwdProtected(inputFile)) {
                                                                 render(view('preview', ['message': "Unable to process: document is password protected"]))
                                                             } else if (fileType.contains('msword')) {
-                                                                //TODO make summernote display images
+                                                                //Handle DOC files
                                                                 String plainText = officeService.wordToHtml(inputFile)
                                                                 render(view('preview', [
                                                                         'fullText'   : plainText,
@@ -149,7 +149,7 @@ class OcrHandler implements Action<Chain> {
                                                                         'directories': directories
                                                                 ]))
                                                             } else if (fileType.contains('document')) {
-                                                                //Handle .docx files
+                                                                //Handle DOCX files
                                                                 String plainText = officeService.docxToHtml(inputFile)
                                                                 render(view('preview', [
                                                                         'fullText'   : plainText,

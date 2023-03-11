@@ -29,6 +29,8 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 
 class OfficeService {
@@ -59,6 +61,18 @@ class OfficeService {
             htmlData = htmlStream.toString()
             docxDocument.close()
             htmlStream.close()
+            // Replace the style of the first <div> tag in the given HTML content
+            String newStyle = "width:450pt;margin-bottom:70.85pt;margin-top:28.4pt;margin-left:25pt;margin-right:70.85pt;"
+            String styleRegex = "(?i)<div\\s+style=\"([^\"]*\\b(width|margin(-top|-bottom|-left|-right)):\\s*[^;]+;\\s*)+\"[^>]*>"
+            Pattern pattern = Pattern.compile(styleRegex)
+            Matcher matcher = pattern.matcher(htmlData)
+            if (matcher.find()) {
+                String divTag = matcher.group()
+                divTag = divTag.replaceAll("(?i)\\bmargin-left:\\s*[^;]+;", "")
+                divTag = divTag.replaceAll("(?i)\\bwidth:\\s*[^;]+;", "")
+                divTag = divTag.replaceFirst("(?i)style=\"", "style=\"" + newStyle)
+                htmlData = htmlData.replaceAll(styleRegex, divTag)
+            }
         } catch (IOException e) {
             log.error("${e.getClass().simpleName}: ${e.message}")
         }
