@@ -43,6 +43,9 @@ class OcrHandler implements Action<Chain> {
     final String[] SUPPORTED_DOCS = ['msword', 'document']
     final String[] SUPPORTED_IMAGES = ['png', 'jpg', 'jpeg']
     final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
+    final String fullWidth = 'col-md-12'
+    final String halfWidth = 'col-md-6'
+
 
     @Inject
     OcrHandler(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService){
@@ -109,7 +112,8 @@ class OcrHandler implements Action<Chain> {
                                                                         'inputPdfFile': inputFile.path,
                                                                         'fileName'    : fileName,
                                                                         'fullText'    : fullText,
-                                                                        'directories' : directories
+                                                                        'directories' : directories,
+                                                                        'widthStyle'   : halfWidth
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
                                                             } else {
@@ -117,7 +121,8 @@ class OcrHandler implements Action<Chain> {
                                                                         'message'    : ('The PDF document is searchable'),
                                                                         'fileName'   : fileName,
                                                                         'outputFile' : inputFile.path,
-                                                                        'directories': directories
+                                                                        'directories': directories,
+                                                                        'widthStyle'   : fullWidth
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
                                                             }
@@ -133,7 +138,8 @@ class OcrHandler implements Action<Chain> {
                                                                     'inputImage' : inputFile.path,
                                                                     'fileName'   : fileName,
                                                                     'fullText'   : fullText,
-                                                                    'directories': directories
+                                                                    'directories': directories,
+                                                                    'widthStyle'   : halfWidth
                                                                     //'detectedLanguage': detectedLanguage
                                                             ]))
                                                             //Handle .doc files
@@ -146,7 +152,8 @@ class OcrHandler implements Action<Chain> {
                                                                 render(view('preview', [
                                                                         'fullText'   : plainText,
                                                                         'fileName'   : fileName,
-                                                                        'directories': directories
+                                                                        'directories': directories,
+                                                                        'widthStyle'   : fullWidth
                                                                 ]))
                                                             } else if (fileType.contains('document')) {
                                                                 //Handle DOCX files
@@ -154,7 +161,8 @@ class OcrHandler implements Action<Chain> {
                                                                 render(view('preview', [
                                                                         'fullText'   : plainText,
                                                                         'fileName'   : fileName,
-                                                                        'directories': directories
+                                                                        'directories': directories,
+                                                                        'widthStyle'   : fullWidth
                                                                 ]))
                                                             }
                                                         } else if (fileType.contains('text')) {
@@ -162,7 +170,8 @@ class OcrHandler implements Action<Chain> {
                                                             render(view('preview', [
                                                                     'fullText'   : text,
                                                                     'fileName'   : fileName,
-                                                                    'directories': directories
+                                                                    'directories': directories,
+                                                                    'widthStyle'   : fullWidth
                                                             ]))
                                                         }
                                                         break
@@ -181,7 +190,8 @@ class OcrHandler implements Action<Chain> {
                                                                         'inputPdfFile': inputFile.path,
                                                                         'fileName'    : fileName,
                                                                         'outputFile'  : outputFile,
-                                                                        'directories' : directories
+                                                                        'directories' : directories,
+                                                                        'widthStyle'  : halfWidth
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
                                                             } else {
@@ -189,7 +199,8 @@ class OcrHandler implements Action<Chain> {
                                                                         'message'    : ('The PDF document is searchable'),
                                                                         'fileName'   : fileName,
                                                                         'outputFile' : inputFile.path,
-                                                                        'directories': directories
+                                                                        'directories': directories,
+                                                                        'widthStyle' : fullWidth
                                                                         //'detectedLanguage': detectedLanguage
                                                                 ]))
                                                             }
@@ -201,7 +212,8 @@ class OcrHandler implements Action<Chain> {
                                                                     'inputImage' : inputFile.path,
                                                                     'fileName'   : fileName,
                                                                     'outputFile' : outputFile.path,
-                                                                    'directories': directories
+                                                                    'directories': directories,
+                                                                    'widthStyle'   : halfWidth
                                                             ]))
                                                             // Handle DOC[x]
                                                         } else if (SUPPORTED_DOCS.any { fileType.contains(it) }) {
@@ -214,7 +226,8 @@ class OcrHandler implements Action<Chain> {
                                                                 render(view('preview', [
                                                                         'outputFile' : pdfDoc.path,
                                                                         'fileName'   : fileName,
-                                                                        'directories': directories
+                                                                        'directories': directories,
+                                                                        'widthStyle'   : fullWidth
                                                                 ]))
                                                             } else if (fileType.contains('document')) {
                                                                 //Handle .docx files
@@ -223,7 +236,8 @@ class OcrHandler implements Action<Chain> {
                                                                 render(view('preview', [
                                                                         'outputFile' : pdfDoc.path,
                                                                         'fileName'   : fileName,
-                                                                        'directories': directories
+                                                                        'directories': directories,
+                                                                        'widthStyle'   : fullWidth
                                                                 ]))
                                                             }
                                                         } else if (fileType.contains('text')) {
@@ -232,7 +246,8 @@ class OcrHandler implements Action<Chain> {
                                                             render(view('preview', [
                                                                     'outputFile' : pdfFile.path,
                                                                     'fileName'   : fileName,
-                                                                    'directories': directories
+                                                                    'directories': directories,
+                                                                    'widthStyle'   : fullWidth
                                                             ]))
                                                         }
                                                         break
