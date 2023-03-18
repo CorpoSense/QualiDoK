@@ -175,11 +175,18 @@ class OfficeService {
      boolean isSearchablePdf(File inputFile) throws IOException {
          String text = ''
          PdfReader reader = new PdfReader(new FileInputStream(inputFile))
-         for (int i = 1; i <= reader.getNumberOfPages(); i++) {
-            text = PdfTextExtractor.getTextFromPage(reader, i)
+         StringBuilder textBuilder = new StringBuilder()
+         boolean searchable = false
+         // Process each page until the first text occurrence is found
+         for (int i = 1; i <= reader.getNumberOfPages() && !searchable; i++) {
+             String pageText = PdfTextExtractor.getTextFromPage(reader, i)
+             textBuilder.append(pageText)
+             text = textBuilder.toString()
+             if (!text.trim().isEmpty()) {
+                 searchable = true
+             }
          }
-         // Check if the extracted text is empty or not
-         return text != null && !text.isEmpty()
+         return !text.trim().isEmpty()
      }
 
     /**
