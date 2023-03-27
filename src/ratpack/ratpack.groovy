@@ -7,10 +7,12 @@ import com.corposense.handlers.OcrHandler
 import com.corposense.handlers.SaveEditedTextHandler
 import com.corposense.handlers.UploadDocHandler
 import com.corposense.services.AccountService
+import com.corposense.services.DirectoriesService
 import com.zaxxer.hikari.HikariConfig
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import ratpack.exec.Promise
 import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
@@ -102,18 +104,14 @@ ratpack {
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
-                    // List of documents
-                    def folderId = request.queryParams['folderId']?: FOLDER_ID
-                    URI uri = "${account.url}/services/rest/folder/listChildren?folderId=${folderId}".toURI()
-                    client.get(uri){ RequestSpec reqSpec ->
-                        reqSpec.basicAuth(account.username, account.password)
-                        reqSpec.headers.set ("Accept", 'application/json')
-                    }.then { ReceivedResponse res ->
-
-                        JsonSlurper jsonSlurper = new JsonSlurper()
-                        ArrayList directories = jsonSlurper.parseText(res.getBody().getText())
-
-                        render(view('index',['directories' : directories , 'account': account ]))
+                    Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                    def DirectoriesService = new DirectoriesService(client)
+                    Promise<ArrayList> directoriesPromise = DirectoriesService.listDirectories(account.url,
+                                                                                               account.username,
+                                                                                               account.password,
+                                                                                               folderId)
+                    directoriesPromise.then { directories ->
+                        render(view('index', ['directories': directories, 'account': account]))
                     }
                 }
             })
