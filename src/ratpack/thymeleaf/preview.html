@@ -46,7 +46,7 @@
             </div><!-- .row -->
 
             <div class="row">
-                <div th:class="${widthStyle}">
+                <div th:class="${fullText != null and (inputPdfFile != null or inputImage != null)} ? 'col-md-6' : (${outPutFile != null or fullText != null} ? 'col-md-12')">
                     <div id="ocr">
                         <ul th:if="${outputFile} != null or ${fullText} != null" class="nav nav-tabs">
                             <li class="active">
@@ -123,7 +123,7 @@
                             </div><!-- .form-options -->
                         </div>
                     </div>
-                </div><!-- .col-md-6 -->
+                </div><!-- .col-md-12 or .col-md-6  -->
 
                 <div class="col-md-6">
                     <div th:if="${inputImage} != null" >
