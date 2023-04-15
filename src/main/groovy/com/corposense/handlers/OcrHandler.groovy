@@ -55,7 +55,7 @@ class OcrHandler implements Action<Chain> {
                 path{
                     byMethod{
                         get {
-                            render(view('upload'))
+                            render(view('upload',[content : 'This is the expected content']))
                         }
                         post {
                             accountService.getActive().then({ List<Account> accounts ->
