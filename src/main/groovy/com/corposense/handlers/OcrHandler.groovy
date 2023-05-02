@@ -85,11 +85,11 @@ class OcrHandler implements Action<Chain> {
 
                                             Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
                                             def DirectoriesService = new DirectoriesService(client)
-                                            Promise<ArrayList> directoriesPromise = DirectoriesService.listDirectories(account.url,
+                                            Promise<ArrayList> foldersPromise = DirectoriesService.listFolders(account.url,
                                                                                                                         account.username,
                                                                                                                         account.password,
                                                                                                                         folderId)
-                                            directoriesPromise.then { directories ->
+                                            foldersPromise.then { directories ->
                                                 switch (typeOcr) {
                                                     case 'extract-text':
                                                         File inputFile = new File("${uploadPath}", uploadedFile.fileName)

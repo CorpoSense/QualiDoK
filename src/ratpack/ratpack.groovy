@@ -106,10 +106,10 @@ ratpack {
                 } else {
                     Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
                     def DirectoriesService = new DirectoriesService(client)
-                    Promise<ArrayList> directoriesPromise = DirectoriesService.listDirectories(account.url,
-                                                                                               account.username,
-                                                                                               account.password,
-                                                                                               folderId)
+                    Promise<String> directoriesPromise = DirectoriesService.listDirectories(account.url,
+                                                                                            account.username,
+                                                                                            account.password,
+                                                                                            folderId)
                     directoriesPromise.then { directories ->
                         render(view('index', ['directories': directories, 'account': account]))
                     }
