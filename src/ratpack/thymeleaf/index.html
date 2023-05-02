@@ -19,46 +19,16 @@
             </div>
         </div><!-- .row -->
 
-        <!-- List of Documents -->
+        <!-- List of Directories -->
         <div class="row" th:if="${account} != null">
             <div class="col-md-12">
                 <h1>Documents</h1>
-                <table id="listDirectories" class="table table-hover" style="width:100%">
-                    <thead>
-                    <tr>
-                        <th> Id</th>
-                        <th>ParentId</th>
-                        <th> Name </th>
-                        <th>Last modified</th>
-                        <th>Creator</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${directories.size() == 0}">
-                        <td colspan="2"> No directories Available </td>
-                    </tr>
-                    <tr th:each="directory : ${directories}">
-                        <td><span th:text="${directory.id}"> Id </span></td>
-                        <td><span th:text="${directory.parentId}"> ParentId </span></td>
-                        <td><span th:text="${directory.name}"> Name </span></td>
-                        <td><span th:text="${directory.lastModified}"> Last modified </span></td>
-                        <td><span th:text="${directory.creator}"> Creator </span></td>
-                    </tr>
-                    </tbody>
-                    <tfoot>
-                    <tr>
-                        <th> Id</th>
-                        <th>ParentId</th>
-                        <th> Name </th>
-                        <th>Last modified</th>
-                        <th>Creator</th>
-                    </tr>
-                    </tfoot>
-                </table>
+                <table id="table"></table>
+                <input type="hidden" id="directories" th:value="${directories}" >
             </div><!-- .col-md-12 -->
         </div><!-- .row -->
     </div><!-- #page-content -->
-    <div th:replace="partials/footer" />
+<div th:replace="partials/footer" />
     <script type="text/javascript" th:src="@{/assets/js/index.js}"></script>
 </body>
 </html>
