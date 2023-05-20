@@ -8,6 +8,7 @@ import com.corposense.handlers.SaveEditedTextHandler
 import com.corposense.handlers.UploadDocHandler
 import com.corposense.services.AccountService
 import com.corposense.services.DirectoriesService
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.zaxxer.hikari.HikariConfig
 
 import org.slf4j.Logger
@@ -15,16 +16,12 @@ import org.slf4j.LoggerFactory
 import ratpack.exec.Promise
 import ratpack.hikari.HikariModule
 import ratpack.http.client.HttpClient
-import ratpack.http.client.ReceivedResponse
-import ratpack.http.client.RequestSpec
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
 import java.nio.file.Path
 import static ratpack.groovy.Groovy.ratpack
 import static ratpack.thymeleaf3.Template.thymeleafTemplate as view
-
-import groovy.json.JsonSlurper
 
 //import com.github.pemistahl.lingua.api.*
 //import static com.github.pemistahl.lingua.api.Language.*
@@ -113,6 +110,14 @@ ratpack {
                     directoriesPromise.then { directories ->
                         render(view('index', ['directories': directories, 'account': account]))
                     }
+                    Promise<ObjectNode> folderStructurePromise = DirectoriesService.getFolderStructure(account.url,
+                                                                                    account.username,
+                                                                                    account.password,
+                                                                                    folderId)
+                    folderStructurePromise.then({ folderStructure ->
+                        String json = folderStructure.toPrettyString()
+                        log.info(json)
+                    })
                 }
             })
         }

@@ -76,10 +76,4 @@ dependencies {
     implementation 'fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.xhtml:2.0.3'
     implementation 'fr.opensagres.xdocreport:fr.opensagres.poi.xwpf.converter.core:2.0.3'
     //implementation 'fr.opensagres.xdocreport:xdocreport:1.0.6'
-
-
-}
-
-test {
-    useJUnitPlatform()
 }
