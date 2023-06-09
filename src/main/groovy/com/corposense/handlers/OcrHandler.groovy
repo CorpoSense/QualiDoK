@@ -32,21 +32,25 @@ class OcrHandler implements Action<Chain> {
     private final UploadService uploadService
     private final ImageService imageService
     private final OfficeService officeService
+    private final DirectoriesService directoriesService
 
     Path uploadPath = Constants.uploadPath
     final Logger log = LoggerFactory.getLogger("ratpack.groovy")
     final int FOLDER_ID = 4
     final String[] SUPPORTED_DOCS = ['msword', 'document']
     final String[] SUPPORTED_IMAGES = ['png', 'jpg', 'jpeg']
-    //final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
+    final String[] SUPPORTED_FILES = SUPPORTED_IMAGES + SUPPORTED_DOCS
 
     @Inject
-    OcrHandler(HttpClient client, AccountService accountService, UploadService uploadService, ImageService imageService, OfficeService officeService){
+    OcrHandler(HttpClient client, AccountService accountService,
+               UploadService uploadService, ImageService imageService,
+               OfficeService officeService, DirectoriesService directoriesService){
         this.client = client
         this.accountService = accountService
         this.uploadService = uploadService
         this.imageService = imageService
         this.officeService = officeService
+        this.directoriesService = directoriesService
     }
 
     @Override
@@ -55,7 +59,7 @@ class OcrHandler implements Action<Chain> {
                 path{
                     byMethod{
                         get {
-                            render(view('upload',[content : 'This is the expected content']))
+                            render(view('upload'))
                         }
                         post {
                             accountService.getActive().then({ List<Account> accounts ->
@@ -71,25 +75,24 @@ class OcrHandler implements Action<Chain> {
                                             render(view('preview', ['message': "No file uploaded!"]))
 
                                         } else if (files.size() == 1){
-                                            // Single document upload
                                             UploadedFile uploadedFile = files.first()
                                             String fileType = uploadedFile.contentType.type
 
-//                                            if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
-//                                                // TODO: may need to back to /upload page
-//                                                render(view('preview', ['message':'This type of file is not supported.']))
-//                                                return
-//                                            }
+                                            if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
+                                                // TODO: may need to back to /upload page
+                                                render(view('preview', ['message':'This type of file is not supported.']))
+                                                return
+                                            }
                                             String typeOcr = form.get('type-ocr')
                                             log.info("Type of processing: ${typeOcr}")
 
                                             Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                            def DirectoriesService = new DirectoriesService(client)
-                                            Promise<ArrayList> foldersPromise = DirectoriesService.listFolders(account.url,
-                                                                                                                        account.username,
-                                                                                                                        account.password,
-                                                                                                                        folderId)
-                                            foldersPromise.then { directories ->
+                                            Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
+                                                                                                                            account.username,
+                                                                                                                            account.password,
+                                                                                                                            folderId)
+                                            directoriesPromise.then { directories ->
+
                                                 switch (typeOcr) {
                                                     case 'extract-text':
                                                         File inputFile = new File("${uploadPath}", uploadedFile.fileName)

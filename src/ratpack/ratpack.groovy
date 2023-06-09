@@ -59,6 +59,7 @@ ratpack {
         bind(SaveEditedTextHandler)
         bind(UploadDocHandler)
         bind(AccountHandler)
+        bind(DirectoriesService)
 
 
         add Service.startup('startup'){ StartEvent event ->
@@ -95,22 +96,21 @@ ratpack {
     }
     handlers {
 
-        get { AccountService accountService, HttpClient client  ->
+        get { AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
             accountService.getActive().then({ List<Account> accounts ->
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
                     Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                    def DirectoriesService = new DirectoriesService(client)
-                    Promise<String> directoriesPromise = DirectoriesService.listDirectories(account.url,
+                    Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
                                                                                             account.username,
                                                                                             account.password,
                                                                                             folderId)
                     directoriesPromise.then { directories ->
                         render(view('index', ['directories': directories, 'account': account]))
                     }
-                    Promise<ObjectNode> folderStructurePromise = DirectoriesService.getFolderStructure(account.url,
+                    Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
                                                                                     account.username,
                                                                                     account.password,
                                                                                     folderId)

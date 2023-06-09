@@ -81,9 +81,14 @@
                                     <div class="form-group">
                                         <label for="folderId">Select a directory:</label>
                                         <select id="folderId" name="folderId" class="form-control">
-                                            <tr th:each="directory : ${directories}">
-                                                <option th:value="${directory.id}"><p th:text="${directory.name}"></p></option>
-                                            </tr>
+                                            <script th:inline="javascript">
+                                                var jsonString = /*[[${directories}]]*/ '';
+                                                var folders = JSON.parse(jsonString);
+                                                for (var i = 0; i < folders.length; i++) {
+                                                    var folder = folders[i];
+                                                    document.write('<option value="' + folder.id + '">' + folder.name + '</option>');
+                                                }
+                                            </script>
                                             <option value="4">Default folder</option>
                                         </select>
                                     </div>
