@@ -78,11 +78,11 @@ class OcrHandler implements Action<Chain> {
                                             UploadedFile uploadedFile = files.first()
                                             String fileType = uploadedFile.contentType.type
 
-                                            if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
+                                            /*if (!SUPPORTED_FILES.any { fileType.contains(it)} ){
                                                 // TODO: may need to back to /upload page
                                                 render(view('preview', ['message':'This type of file is not supported.']))
                                                 return
-                                            }
+                                            }*/
                                             String typeOcr = form.get('type-ocr')
                                             log.info("Type of processing: ${typeOcr}")
 
@@ -95,6 +95,13 @@ class OcrHandler implements Action<Chain> {
 
                                                 switch (typeOcr) {
                                                     case 'extract-text':
+                                                        // Get the binary data of the uploaded file
+                                                        InputStream inputStream = uploadedFile.getInputStream()
+
+                                                        // Convert InputStream to byte array
+                                                        byte[] binaryData = inputStream.bytes
+                                                        println("the size of the file is: ${binaryData.size()}")
+
                                                         File inputFile = new File("${uploadPath}", uploadedFile.fileName)
                                                         Files.write(inputFile.toPath(), uploadedFile.bytes)
                                                         String fileName = imageService.getFileNameWithoutExt(inputFile)

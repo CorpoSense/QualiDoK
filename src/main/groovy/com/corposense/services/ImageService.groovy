@@ -10,7 +10,6 @@ import net.sourceforge.tess4j.ITesseract
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 import net.sourceforge.tess4j.util.ImageHelper
-import org.apache.commons.io.FileUtils
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -68,16 +67,10 @@ class ImageService extends PDFStreamEngine {
 
     Tesseract ocrEngine
 
-//    final String uploadDir = 'uploads'
-//    final String publicDir = 'public'
-//    final String downloadsDir = 'downloads'
-//    final Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
-//    final Path downloadsPath = baseDir.resolve(downloadsDir)
-
     @Inject
     ImageService() {
         this.ocrEngine = new Tesseract()
-        this.ocrEngine.setTessVariable("user_defined_dpi", "${IMAGE_DENSITY}");
+        this.ocrEngine.setTessVariable("user_defined_dpi", "${IMAGE_DENSITY}")
         this.ocrEngine.setDatapath(TESSERACT_DATA_PATH)
         this.ocrEngine.setLanguage(DEFAULT_SUPPORTED_LANGUAGES)
     }
@@ -183,7 +176,6 @@ class ImageService extends PDFStreamEngine {
             this.ExtractImgFromPdf(inputFile)
 
             PDFMergerUtility PDFmerger = new PDFMergerUtility()
-            //Setting the destination file path
             outputFile = new File("${Constants.downloadPath}","${inputFile.name}")
             PDFmerger.setDestinationFileName("${outputFile}")
 
@@ -194,9 +186,7 @@ class ImageService extends PDFStreamEngine {
                 //Loading an existing PDF document
                 File pdfFile = new File("${Constants.downloadPath}","${outputPdf.name}")
                 PDDocument document = PDDocument.load(pdfFile)
-                //adding the source files
                 PDFmerger.addSource(pdfFile)
-                //Merging the documents
                 PDFmerger.mergeDocuments(null)
                 document.close()
             }
@@ -221,7 +211,6 @@ class ImageService extends PDFStreamEngine {
             document = new Document(PageSize.LETTER)
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
             FileOutputStream fos = new FileOutputStream(doc.toString())
-            // use HTMLConverter
             HtmlConverter.convertToPdf(htmlContent, fos)
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
         } catch (Exception e) {
@@ -242,15 +231,11 @@ class ImageService extends PDFStreamEngine {
     File htmlToPdf(File htmlFile , String fileName) {
       Document document = null
         File doc = null
-        //File imageFolder = null
         try {
             document = new Document(PageSize.LETTER)
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
-
-            // use HTMLConverter
             HtmlConverter.convertToPdf(htmlFile,doc)
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
-            //imageFolder = new File("${Constants.downloadPath}" + File.separator + "image")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
@@ -260,10 +245,6 @@ class ImageService extends PDFStreamEngine {
             if (htmlFile != null){
                 htmlFile.delete()
             }
-//            if (imageFolder.exists()){
-//                FileUtils.cleanDirectory(imageFolder)
-//                FileUtils.deleteDirectory(imageFolder)
-//            }
         }
         return doc
     }
@@ -280,7 +261,6 @@ class ImageService extends PDFStreamEngine {
             String fileName = getFileNameWithoutExt(inputFile,'.pdf')
             pdfDoc = new File("${Constants.downloadPath}", fileName)
             OutputStream fos = new FileOutputStream(pdfDoc.toString())
-            //create pdf file
             document = new Document(PageSize.LETTER)
             PdfWriter.getInstance(document, fos)
             document.open()
@@ -346,7 +326,6 @@ class ImageService extends PDFStreamEngine {
         File outputImage = null
                 List<ITesseract.RenderedFormat> formats = new ArrayList<ITesseract.RenderedFormat>(Arrays.asList(ITesseract.RenderedFormat.PDF))
         try {
-            // Mode 6: Assume a single uniform block of text.
             this.ocrEngine.setPageSegMode(6)
             this.ocrEngine.setTessVariable("textonly_pdf", "${visibleImageLayer}")
 
@@ -421,7 +400,7 @@ class ImageService extends PDFStreamEngine {
      */
     File deskewImage(File inputImage) {
         BufferedImage bufferedImage = ImageIO.read(inputImage)
-        double skewAngle = new ImageDeskew(bufferedImage).skewAngle // determine skew angle
+        double skewAngle = new ImageDeskew(bufferedImage).skewAngle
         if ((skewAngle > MINIMUM_DESKEW_THRESHOLD || skewAngle < -(MINIMUM_DESKEW_THRESHOLD))) {
             bufferedImage = ImageHelper.rotateImage(bufferedImage, -skewAngle)
         }
@@ -466,7 +445,6 @@ class ImageService extends PDFStreamEngine {
     File binaryInverse(File inputImage) {
         ProcessStarter.setGlobalSearchPath(IMAGE_MAGICK_PATH)
         String imgExt = getImageExt(inputImage)
-        // Create the operation, add images and operators/options
         IMOperation op = new IMOperation()
         op.addImage()
         op.density(IMAGE_DENSITY)
@@ -478,8 +456,6 @@ class ImageService extends PDFStreamEngine {
                 .p_opaque("#000000")
                 .blur(1d,1d)
         op.addImage()
-
-        // Execute the operation
         BufferedImage bufferedImage =  ImageIO.read( inputImage )
         File outputImage = new File(inputImage.parent, "binaryInverseImg_${inputImage.name}")
         ConvertCmd convertCmd = new ConvertCmd()
