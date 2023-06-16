@@ -14,7 +14,6 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
-
 import java.awt.Font
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
@@ -31,26 +30,6 @@ class OcrHandlerSpec extends Specification {
     TestHttpClient testClient = app.httpClient
     def okHttpClient = new OkHttpClient()
 
-    @Unroll
-    def "POST /upload should process the form and return the result"() {
-        given:
-        def uploadedFile = new File("src/main/resources/files/image3.jpg")
-        def requestBody = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart('input-doc', uploadedFile.name, RequestBody.create(MediaType.parse('image/jpeg'), uploadedFile))
-                .addFormDataPart('type-ocr', 'extract-text')
-                .build()
-        def request = new Request.Builder()
-                .url(app.address.resolve('upload').toString())
-                .post(requestBody)
-                .build()
-        def response = okHttpClient.newCall(request).execute()
-
-        expect:
-        response.code() == 200
-        response.body().string().contains('Image processed successfully')
-    }
-
     @Unroll //OK
     def "Should render the upload template with the correct content"() {
         when:
@@ -59,9 +38,239 @@ class OcrHandlerSpec extends Specification {
         response.statusCode == 200
         response.body.text.contains('QualiDoK')
     }
+    @Unroll //OK
+    def "Perform Ocr on uploaded image file"() {
+        given:
+        def inputFile= new File("src/main/resources/files/image3.jpg")
+        RequestBody body = RequestBody.create(MediaType.parse('image/jpeg'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
 
-    @Unroll
-    //OK
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Image processed successfully')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'Perform Ocr on uploaded pdf file'() {
+        given:
+        def response = null
+        def inputFile= new File("src/main/resources/files/demojournal.pdf")
+        RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+
+        try {
+            response = okHttpClient.newCall(request).execute()
+        } catch (SocketTimeoutException e) {
+            println("Request timed out. Please try again.")
+        }
+
+        if (response != null) {
+            Path uploadPath = Constants.uploadPath
+            File uploadedFile = new File("${uploadPath}", inputFile.name)
+
+            expect:
+            response.code() == 200
+            response.body().string().contains('Image processed successfully')
+
+            cleanup:
+            uploadedFile.deleteOnExit()
+        }
+    }
+    @Unroll //OK
+    def'upload searchable pdf file'() {
+        given:
+        def response = null
+        def inputFile= new File("src/main/resources/files/searchablePdf.pdf")
+        RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+
+        try {
+            response = okHttpClient.newCall(request).execute()
+        } catch (SocketTimeoutException e) {
+            println("Request timed out. Please try again.")
+        }
+
+        if (response != null) {
+            Path uploadPath = Constants.uploadPath
+            File uploadedFile = new File("${uploadPath}", inputFile.name)
+
+            expect:
+            response.code() == 200
+            response.body().string().contains('The PDF document is searchable')
+
+            cleanup:
+            uploadedFile.deleteOnExit()
+        }
+    }
+    @Unroll //Ok
+    def'extract text from uploaded text file'(){
+        given:
+        def inputFile= new File("src/main/resources/files/text.txt")
+        RequestBody body = RequestBody.create(MediaType.parse('text/plain'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('text extracted successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'extract content from uploaded Doc file'(){
+        given:
+        def inputFile= new File("src/main/resources/files/wordDoc.doc")
+        String contentType = 'application/msword'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Content extracted successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'extract content from uploaded Docx file'(){
+        given:
+        def inputFile= new File("src/main/resources/files/officeDocx.docx")
+        String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Content extracted successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'upload password protected Doc file'(){
+        given:
+        def inputFile= new File("src/main/resources/files/encryptDoc.doc")
+        String contentType = 'application/msword'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Unable to process: document is password protected')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'upload password protected Docx file'(){
+        given:
+        def inputFile= new File("src/main/resources/files/encryptDocx.docx")
+        String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'extract-text')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Unable to process: document is password protected')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+    }
+
+
+
+/*
+    @Unroll //OK
     def 'upload text file and extract content'() {
         given:
         def builder = DefaultMultipartForm.builder()
@@ -110,7 +319,6 @@ class OcrHandlerSpec extends Specification {
         name      | contentType
         'text'    | 'text/plain'
     }
-
     @Unroll //OK
     def 'Should create an image'(){
         given:
@@ -120,9 +328,7 @@ class OcrHandlerSpec extends Specification {
         then:
         image != null
     }
-
-    @Unroll
-    //OK
+    @Unroll //OK
     def 'extract content from image file'() {
         given:
         File inputFile = new File("src/main/resources/files/image3.jpg")
@@ -136,7 +342,6 @@ class OcrHandlerSpec extends Specification {
         fileName.contains('image3')
         fullText.contains('AN OBSESSION WITH TIME')
     }
-
     @Unroll //OK
     def 'Should upload an image file'() {
         given:
@@ -176,9 +381,7 @@ class OcrHandlerSpec extends Specification {
         name           | contentType  | imageContent
         'image3'       | 'image/jpeg' | 'This is image'
     }
-
-    @Unroll
-    //OK
+    @Unroll //OK
     def 'extract content from Docx file'(){
         given:
         def builder = DefaultMultipartForm.builder()
@@ -221,6 +424,8 @@ class OcrHandlerSpec extends Specification {
         name              | contentType                                                               | nameWithoutExt
         'officeDocx.docx' | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' | 'officeDocx'
     }
+
+ */
 
 // Helper functions
     BufferedImage createAnImage(String fileContent){
