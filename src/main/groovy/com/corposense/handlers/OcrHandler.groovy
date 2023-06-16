@@ -143,6 +143,7 @@ class OcrHandler implements Action<Chain> {
                                                                 //Handle DOC files
                                                                 String plainText = officeService.wordToHtml(inputFile)
                                                                 render(view('preview', [
+                                                                        'message'    : (plainText ? 'Content extracted successfully.' : 'No output can be found.'),
                                                                         'fullText'   : plainText,
                                                                         'fileName'   : fileName,
                                                                         'directories': directories
@@ -151,6 +152,7 @@ class OcrHandler implements Action<Chain> {
                                                                 //Handle DOCX files
                                                                 String plainText = officeService.docxToHtml(inputFile)
                                                                 render(view('preview', [
+                                                                        'message'    : (plainText ? 'Content extracted successfully.' : 'No output can be found.'),
                                                                         'fullText'   : plainText,
                                                                         'fileName'   : fileName,
                                                                         'directories': directories
@@ -159,6 +161,7 @@ class OcrHandler implements Action<Chain> {
                                                         } else if (fileType.contains('text')) {
                                                             String text = officeService.readText(inputFile)
                                                             render(view('preview', [
+                                                                    'message'    : (text ? 'text extracted successfully.' : 'No output can be found.'),
                                                                     'fullText'   : text,
                                                                     'fileName'   : fileName,
                                                                     'directories': directories
