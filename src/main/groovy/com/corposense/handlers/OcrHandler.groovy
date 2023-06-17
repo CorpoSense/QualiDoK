@@ -179,8 +179,7 @@ class OcrHandler implements Action<Chain> {
                                                                 File outputFile = imageService.producePdfForMultipleImg(inputFile)
                                                                 // List of directories
                                                                 render(view('preview', [
-                                                                        'message'     : ('Document generated successfully.'),
-                                                                        //'inputPdfFile': inputFile.path,
+                                                                        'message'     : (outputFile? 'Document generated successfully.': 'No output can be found.'),
                                                                         'fileName'    : fileName,
                                                                         'outputFile'  : outputFile,
                                                                         'directories' : directories
@@ -199,8 +198,7 @@ class OcrHandler implements Action<Chain> {
                                                             // Handle image document (TODO: make visibleImageLayer dynamic)
                                                             File outputFile = imageService.producePdf(inputFile, 0)
                                                             render(view('preview', [
-                                                                    'message'    : 'Document generated successfully.',
-                                                                    //'inputImage' : inputFile.path,
+                                                                    'message'    : (outputFile? 'Document generated successfully.': 'No output can be found.'),
                                                                     'fileName'   : fileName,
                                                                     'outputFile' : outputFile.path,
                                                                     'directories': directories
@@ -214,6 +212,7 @@ class OcrHandler implements Action<Chain> {
                                                                 File htmlFile = officeService.convertDocToHtml(inputFile, fileName)
                                                                 File pdfDoc = imageService.htmlToPdf(htmlFile, fileName)
                                                                 render(view('preview', [
+                                                                        'message'    : (pdfDoc? 'Document generated successfully.': 'No output can be found.'),
                                                                         'outputFile' : pdfDoc.path,
                                                                         'fileName'   : fileName,
                                                                         'directories': directories
@@ -223,6 +222,7 @@ class OcrHandler implements Action<Chain> {
                                                                 File htmlFile = officeService.convertDocxToHtml(inputFile, fileName)
                                                                 File pdfDoc = imageService.htmlToPdf(htmlFile, fileName)
                                                                 render(view('preview', [
+                                                                        'message'    : (pdfDoc? 'Document generated successfully.': 'No output can be found.'),
                                                                         'outputFile' : pdfDoc.path,
                                                                         'fileName'   : fileName,
                                                                         'directories': directories
@@ -232,6 +232,7 @@ class OcrHandler implements Action<Chain> {
                                                             String text = officeService.readText(inputFile)
                                                             File pdfFile = imageService.createPdf(inputFile, text)
                                                             render(view('preview', [
+                                                                    'message'    : (pdfFile? 'Document generated successfully.': 'No output can be found.'),
                                                                     'outputFile' : pdfFile.path,
                                                                     'fileName'   : fileName,
                                                                     'directories': directories
