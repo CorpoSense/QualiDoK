@@ -21,6 +21,7 @@ import java.awt.Color
 import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
+import java.util.concurrent.TimeUnit
 
 class OcrHandlerSpec extends Specification {
 
@@ -28,7 +29,9 @@ class OcrHandlerSpec extends Specification {
     @Shared
     GroovyRatpackMainApplicationUnderTest app = new GroovyRatpackMainApplicationUnderTest()
     TestHttpClient testClient = app.httpClient
-    def okHttpClient = new OkHttpClient()
+    def okHttpClient = new OkHttpClient.Builder()
+            .readTimeout(60, TimeUnit.SECONDS)
+            .build()
 
     @Unroll //OK
     def "Should render the upload template with the correct content"() {
@@ -39,7 +42,7 @@ class OcrHandlerSpec extends Specification {
         response.body.text.contains('QualiDoK')
     }
     @Unroll //OK
-    def "Perform Ocr on uploaded image file"() {
+    def "Perform Ocr on uploaded image file with extract text option"() {
         given:
         def inputFile= new File("src/main/resources/files/image3.jpg")
         RequestBody body = RequestBody.create(MediaType.parse('image/jpeg'), inputFile)
@@ -65,10 +68,9 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'Perform Ocr on uploaded pdf file'() {
+    def'Perform Ocr on uploaded pdf file with extract text option'() {
         given:
-        def response = null
-        def inputFile= new File("src/main/resources/files/demojournal.pdf")
+        def inputFile = new File("src/main/resources/files/demojournal.pdf")
         RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
         def requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -79,29 +81,20 @@ class OcrHandlerSpec extends Specification {
                 .url(app.address.resolve('upload').toString())
                 .post(requestBody)
                 .build()
+        def response = okHttpClient.newCall(request).execute()
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}", inputFile.name)
 
-        try {
-            response = okHttpClient.newCall(request).execute()
-        } catch (SocketTimeoutException e) {
-            println("Request timed out. Please try again.")
-        }
+        expect:
+        response.code() == 200
+        response.body().string().contains('Image processed successfully')
 
-        if (response != null) {
-            Path uploadPath = Constants.uploadPath
-            File uploadedFile = new File("${uploadPath}", inputFile.name)
-
-            expect:
-            response.code() == 200
-            response.body().string().contains('Image processed successfully')
-
-            cleanup:
-            uploadedFile.deleteOnExit()
-        }
+        cleanup:
+        uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload searchable pdf file'() {
+    def'upload searchable pdf file with extract text option'() {
         given:
-        def response = null
         def inputFile= new File("src/main/resources/files/searchablePdf.pdf")
         RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
         def requestBody = new MultipartBody.Builder()
@@ -113,27 +106,19 @@ class OcrHandlerSpec extends Specification {
                 .url(app.address.resolve('upload').toString())
                 .post(requestBody)
                 .build()
+        def response = okHttpClient.newCall(request).execute()
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}", inputFile.name)
 
-        try {
-            response = okHttpClient.newCall(request).execute()
-        } catch (SocketTimeoutException e) {
-            println("Request timed out. Please try again.")
-        }
+        expect:
+        response.code() == 200
+        response.body().string().contains('The PDF document is searchable')
 
-        if (response != null) {
-            Path uploadPath = Constants.uploadPath
-            File uploadedFile = new File("${uploadPath}", inputFile.name)
-
-            expect:
-            response.code() == 200
-            response.body().string().contains('The PDF document is searchable')
-
-            cleanup:
-            uploadedFile.deleteOnExit()
-        }
+        cleanup:
+        uploadedFile.deleteOnExit()
     }
     @Unroll //Ok
-    def'extract text from uploaded text file'(){
+    def'extract text from uploaded text file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/text.txt")
         RequestBody body = RequestBody.create(MediaType.parse('text/plain'), inputFile)
@@ -159,7 +144,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'extract content from uploaded Doc file'(){
+    def'extract content from uploaded Doc file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/wordDoc.doc")
         String contentType = 'application/msword'
@@ -186,7 +171,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'extract content from uploaded Docx file'(){
+    def'extract content from uploaded Docx file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/officeDocx.docx")
         String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -213,7 +198,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload password protected Doc file'(){
+    def'upload password protected Doc file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/encryptDoc.doc")
         String contentType = 'application/msword'
@@ -240,7 +225,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload password protected Docx file'(){
+    def'upload password protected Docx file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/encryptDocx.docx")
         String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -265,6 +250,239 @@ class OcrHandlerSpec extends Specification {
 
         cleanup:
         uploadedFile.deleteOnExit()
+    }
+
+    @Unroll //OK
+    def'Upload searchable pdf file with produce PDF option'(){
+        given:
+        def inputFile= new File("src/main/resources/files/searchablePdf.pdf")
+        RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}", inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('The PDF document is searchable')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+
+    }
+    @Unroll
+    def'Apply OCR processing for pdf file with produce PDF option'(){
+        given:
+        def inputFile = new File("src/main/resources/files/demojournal.pdf")
+        RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+        Path uploadPath = Constants.uploadPath
+        Path downloadPath = Constants.downloadPath
+        File uploadedFile = new File("${uploadPath}", inputFile.name)
+        File downloadedFile = new File("${downloadPath}", inputFile.name)
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Document generated successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
+
+    }
+    @Unroll //OK
+    def'Apply OCR processing for image with produce PDF option'(){
+        given:
+        def inputFile= new File("src/main/resources/files/image3.jpg")
+        RequestBody body = RequestBody.create(MediaType.parse('image/jpeg'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+        Path downloadPath = Constants.downloadPath
+        File downloadedFile = new File("${downloadPath}","image3.pdf")
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Document generated successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'upload password protected Doc file with produce pdf option'(){
+        given:
+        def inputFile= new File("src/main/resources/files/encryptDoc.doc")
+        String contentType = 'application/msword'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+        Path downloadPath = Constants.downloadPath
+        File downloadedFile = new File("${downloadPath}","encryptDoc.pdf")
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Unable to process: document is password protected')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'upload password protected Docx file with produce pdf option'(){
+        given:
+        def inputFile= new File("src/main/resources/files/encryptDocx.docx")
+        String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+        Path downloadPath = Constants.downloadPath
+        File downloadedFile = new File("${downloadPath}","encryptDocx.pdf")
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Unable to process: document is password protected')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'Create pdf file from uploaded Doc file with produce pdf option'(){
+        given:
+        def inputFile = new File("src/main/resources/files/wordDoc.doc")
+        String contentType = 'application/msword'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+        Path downloadPath = Constants.downloadPath
+        File downloadedFile = new File("${downloadPath}","wordDoc.pdf")
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Document generated successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
+    }
+    @Unroll //OK
+    def'Create pdf file from uploaded Docx file with produce pdf option'(){
+        given:
+        def inputFile= new File("src/main/resources/files/officeDocx.docx")
+        String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        RequestBody body = RequestBody.create(MediaType.parse(contentType), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+        Path downloadPath = Constants.downloadPath
+        File downloadedFile = new File("${downloadPath}","officeDocx.pdf")
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Document generated successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
+    }
+    @Unroll //Ok
+    def'Create pdf file from uploaded text file with produce pdf option'(){
+        given:
+        def inputFile= new File("src/main/resources/files/text.txt")
+        RequestBody body = RequestBody.create(MediaType.parse('text/plain'), inputFile)
+        def requestBody = new MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart('input-doc', inputFile.name, body)
+                .addFormDataPart('type-ocr', 'produce-pdf')
+                .build()
+        def request = new Request.Builder()
+                .url(app.address.resolve('upload').toString())
+                .post(requestBody)
+                .build()
+        def response = okHttpClient.newCall(request).execute()
+
+        Path uploadPath = Constants.uploadPath
+        File uploadedFile = new File("${uploadPath}",inputFile.name)
+        Path downloadPath = Constants.downloadPath
+        File downloadedFile = new File("${downloadPath}","text.pdf")
+
+        expect:
+        response.code() == 200
+        response.body().string().contains('Document generated successfully.')
+
+        cleanup:
+        uploadedFile.deleteOnExit()
+        downloadedFile.deleteOnExit()
     }
 
 
