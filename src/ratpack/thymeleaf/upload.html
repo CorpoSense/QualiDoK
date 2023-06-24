@@ -7,7 +7,6 @@
 <div th:replace="partials/header" />
 
 <div id="page-content" class="container">
-
     <div class="row" th:if="${message} == ''">
         <div class="col-md-12">
             <div class="alert alert-info">
@@ -43,37 +42,22 @@
                 <div class="form-group pull-right">
                     <input type="submit" class="btn btn-primary" value="Upload">
                 </div>
-        
-            </form>
-        </div><!-- .col-md-6 -->
 
-        <div class="col-md-6">
-            <!--<div class="form-group">
-                <label for="folderId">Directories:</label>
-                <select id="folderId" class="form-control">
-                    <option value="4">Directories</option>
-                </select>
-            </div> !-->
-            
+            </form>
         </div><!-- .col-md-6 -->
 
     </div><!-- .row -->
 
+    <div class="alert alert-danger hidden" id="msg-warning">
+        <p>No file selected!</p>
+    </div>
+    <div class="alert alert-danger hidden" id="msg-warning2">
+        <p>File too small, please select a file bigger than 16 Ko</p>
+    </div>
+
 </div><!-- #page-content -->
 
 <div th:replace="partials/footer" />
-
-<script type="text/javascript">
-$(function(){
-    var loading = $('#loading');
-    $('#doc-upload').on('submit', function(){
-        loading.show();
-        console.log('Processing...');
-        setTimeout(function(){
-            $(loading).append("You will be redirected...");
-        }, 5000);
-    });
-});
-</script>
+<script type="text/javascript" th:src="@{/assets/js/upload.js}"></script>
 </body>
 </html>

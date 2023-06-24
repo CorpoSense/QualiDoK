@@ -2,12 +2,17 @@ package com.corposense.services
 
 import com.corposense.Constants
 import com.google.inject.Inject
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.pdf.PdfWriter
 import com.recognition.software.jdeskew.ImageDeskew
 import groovy.transform.CompileStatic
 import net.sourceforge.tess4j.ITesseract
 import net.sourceforge.tess4j.Tesseract
 import net.sourceforge.tess4j.TesseractException
 import net.sourceforge.tess4j.util.ImageHelper
+import org.apache.pdfbox.multipdf.PDFMergerUtility
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
 import org.im4java.core.ConvertCmd
 import org.im4java.core.IMOperation
 import org.im4java.process.ProcessStarter
@@ -18,18 +23,22 @@ import javax.imageio.ImageIO
 import java.awt.Image
 import java.awt.image.BufferedImage
 
-import com.itextpdf.text.BaseColor
 import com.itextpdf.text.Document
-import com.itextpdf.text.DocumentException
-import com.itextpdf.text.Font
-import com.itextpdf.text.FontFactory
 import com.itextpdf.text.PageSize
-import com.itextpdf.text.Paragraph
-import com.itextpdf.text.pdf.PdfWriter
 import com.itextpdf.html2pdf.HtmlConverter
 
+import org.apache.pdfbox.contentstream.PDFStreamEngine
+import org.apache.pdfbox.contentstream.operator.Operator
+import org.apache.pdfbox.cos.COSBase
+import org.apache.pdfbox.cos.COSName
+
+import org.apache.pdfbox.pdmodel.graphics.PDXObject
+import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
+
+
 @CompileStatic
-class ImageService {
+class ImageService extends PDFStreamEngine {
 
     static {
         /**
@@ -53,65 +62,224 @@ class ImageService {
     static final int IMAGE_DENSITY = 300 // 96
     static final String DEFAULT_SUPPORTED_LANGUAGES = 'eng+ara+fra'
     static final long MIN_IMAGE_FILE_SIZE = 8192
+    private int imageNumber = 1
     final Logger log = LoggerFactory.getLogger(ImageService)
 
     Tesseract ocrEngine
 
-//    final String uploadDir = 'uploads'
-//    final String publicDir = 'public'
-//    final String downloadsDir = 'downloads'
-//    final Path baseDir = BaseDir.find("${publicDir}/${uploadDir}")
-//    final Path downloadsPath = baseDir.resolve(downloadsDir)
-
     @Inject
-    ImageService(){
+    ImageService() {
         this.ocrEngine = new Tesseract()
-        this.ocrEngine.setTessVariable("user_defined_dpi", "${IMAGE_DENSITY}");
+        this.ocrEngine.setTessVariable("user_defined_dpi", "${IMAGE_DENSITY}")
         this.ocrEngine.setDatapath(TESSERACT_DATA_PATH)
         this.ocrEngine.setLanguage(DEFAULT_SUPPORTED_LANGUAGES)
     }
 
-    File generateDocument(String fullText , String inputImage) throws FileNotFoundException, DocumentException {
+    @Override
+    protected void processOperator(Operator operator, List<COSBase> operands) throws IOException {
+        String operation = operator.name
+        if (operation == 'Do') {
+            COSName objectName = (COSName) operands.get(0)
+            PDXObject xObject = getResources().getXObject(objectName)
+            if (xObject instanceof PDImageXObject) {
+                PDImageXObject image = (PDImageXObject) xObject
+
+                // save image to local
+                BufferedImage bImage = image.getImage()
+                String extractedFile = "ExtractedImage_${imageNumber}.png"
+                File file = new File("${Constants.uploadPath}", extractedFile)
+                ImageIO.write(bImage, "PNG", file)
+                log.info("Image saved.")
+                imageNumber++
+
+            } else if (xObject instanceof PDFormXObject) {
+                PDFormXObject form = (PDFormXObject) xObject
+                showForm(form)
+            }
+        } else {
+            super.processOperator(operator, operands)
+        }
+    }
+    /**
+     * Extract images from parsed pdf file
+     * @param inputFile
+     */
+    void ExtractImgFromPdf (File inputFile){
+        PDDocument document = null
+        try {
+            document = PDDocument.load(inputFile)
+            ImageService printer = new ImageService()
+            int pageNum = 0
+            document.pages.each { PDPage page ->
+                pageNum++
+                log.info( "Processing page: ${pageNum}" )
+                printer.processPage(page)
+            }
+        } catch (Exception e){
+            log.error("Cannot extract image from PDF (${e.getClass().simpleName}): ${e.message}")
+        } finally {
+            if ( document != null ) {
+                document.close()
+            }
+        }
+    }
+    /**
+     * Count number of images from parsed pdf file
+     * @param inputFile
+     * @return number of images
+     */
+    int countImage(File inputFile){
+        PDDocument doc = null
+        int countPages
+        try {
+            doc = PDDocument.load(inputFile)
+            countPages = doc.getNumberOfPages()
+        } catch (Exception e){
+            log.error("Cannot count pages from PDF (${e.getClass().simpleName}): ${e.message}")
+        } finally {
+            if (doc){
+                doc.close()
+            }
+        }
+        return countPages
+    }
+    /**
+     * Produce text from parsed pdf file that contain multiple images
+     * @param inputFile
+     * @return text
+     */
+    List<String> produceTextForMultipleImg(File inputFile){
+
+        int countPages = this.countImage(inputFile)
+        log.info("Number of pages: ${countPages}")
+        this.ExtractImgFromPdf(inputFile)
+        List<String> fullText = new ArrayList<String>()
+        for (int i = 0 ; i < countPages ; i++){
+            File extractedImg = new File("${Constants.uploadPath}","ExtractedImage_${i+1}.png")
+            String text = this.produceText(extractedImg)
+            fullText.add(text)
+            extractedImg.delete()
+        }
+        return fullText
+    }
+    /**
+     * Generate searchable pdf document form parsed pdf file that contain multiple images
+     * @param inputFile
+     * @return pdf document
+     */
+    File producePdfForMultipleImg(File inputFile){
+
+        File outputFile = null
+        try {
+            int countPages = this.countImage(inputFile)
+            log.info("Number of pages: ${countPages}")
+            this.ExtractImgFromPdf(inputFile)
+
+            PDFMergerUtility PDFmerger = new PDFMergerUtility()
+            outputFile = new File("${Constants.downloadPath}","${inputFile.name}")
+            PDFmerger.setDestinationFileName("${outputFile}")
+
+            for (int i = 1 ; i <= countPages ; i++){
+                File extractedImg = new File("${Constants.uploadPath}","ExtractedImage_${i}.png")
+                File outputPdf = this.producePdf(extractedImg,0)
+                extractedImg.delete()
+                //Loading an existing PDF document
+                File pdfFile = new File("${Constants.downloadPath}","${outputPdf.name}")
+                PDDocument document = PDDocument.load(pdfFile)
+                PDFmerger.addSource(pdfFile)
+                PDFmerger.mergeDocuments(null)
+                document.close()
+            }
+            log.info("PDF Documents merged to a single file successfully")
+            deleteDocument(countPages)
+
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        }
+        return outputFile
+    }
+    /**
+     * Generate pdf document from parsed html content
+     * @param htmlContent
+     * @param fileName
+     * @return
+     */
+    File htmlToPdf(String htmlContent, String fileName){
         Document document = null
-        // Get a PdfWriter instance
         File doc = null
         try {
             document = new Document(PageSize.LETTER)
-            //ex:image.jpg
-            String filewExt = inputImage.substring(inputImage.lastIndexOf('/') + 1)
-            //ex:image
-            String fileName = filewExt.with {it.take(it.lastIndexOf('.'))}
-            log.info("${filewExt}")
-            log.info("${fileName}")
-
-            //we use this if the input File has File as a Type
-            // String fileName = getFileNameWithoutExt(inputImage)+'.pdf'
-
             doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
             FileOutputStream fos = new FileOutputStream(doc.toString())
-            // use HTMLConverter
-            HtmlConverter.convertToPdf(fullText, fos)
-
-            // PdfWriter.getInstance(document, fos)
-            //Open the Document
-            // document.open()
-            //Add content
-            // Font font = FontFactory.getFont(FontFactory.COURIER, 12, BaseColor.BLACK)
-            // Paragraph paragraph = new Paragraph(fullText, font)
-            // document.add(paragraph)
-            // File docPdf = new File(doc.parent, "${doc.name}")
+            HtmlConverter.convertToPdf(htmlContent, fos)
             log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
         } catch (Exception e) {
             log.error ("${e.getClass().simpleName}: ${e.message}")
         } finally {
-            //Close the document
             if (document){
                 document.close()
             }
         }
         return doc
     }
-
+    /**
+     * Generate pdf document form parsed Html file
+     * @param htmlFile
+     * @param fileName
+     * @return pdf file
+     */
+    File htmlToPdf(File htmlFile , String fileName) {
+      Document document = null
+        File doc = null
+        try {
+            document = new Document(PageSize.LETTER)
+            doc = new File("${Constants.downloadPath}", "${fileName}.pdf")
+            HtmlConverter.convertToPdf(htmlFile,doc)
+            log.info("pdf document will be created at: ${Constants.downloadPath}/${doc.name}")
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        } finally {
+            if (document){
+                document.close()
+            }
+            if (htmlFile != null){
+                htmlFile.delete()
+            }
+        }
+        return doc
+    }
+    /**
+     * Create pdf file from the given file and text
+     * @param inputFile
+     * @param text
+     * @return pdf file
+     */
+    File createPdf(File inputFile , String text){
+        Document document = null
+        File pdfDoc = null
+        try {
+            String fileName = getFileNameWithoutExt(inputFile,'.pdf')
+            pdfDoc = new File("${Constants.downloadPath}", fileName)
+            OutputStream fos = new FileOutputStream(pdfDoc.toString())
+            document = new Document(PageSize.LETTER)
+            PdfWriter.getInstance(document, fos)
+            document.open()
+            document.add(new Paragraph(text))
+            log.info("pdf document will be created at: ${Constants.downloadPath}/${pdfDoc.name}")
+        } catch (Exception e) {
+            log.error ("${e.getClass().simpleName}: ${e.message}")
+        } finally {
+            if (document){
+                document.close()
+            }
+        }
+        return pdfDoc
+    }
+    /**
+     * Produce text from from parsed input image.
+     * @param inputImage
+     * @return Text
+     */
     String produceText(File inputImage){
         String fullText = null
 
@@ -158,7 +326,6 @@ class ImageService {
         File outputImage = null
                 List<ITesseract.RenderedFormat> formats = new ArrayList<ITesseract.RenderedFormat>(Arrays.asList(ITesseract.RenderedFormat.PDF))
         try {
-            // Mode 6: Assume a single uniform block of text.
             this.ocrEngine.setPageSegMode(6)
             this.ocrEngine.setTessVariable("textonly_pdf", "${visibleImageLayer}")
 
@@ -233,7 +400,7 @@ class ImageService {
      */
     File deskewImage(File inputImage) {
         BufferedImage bufferedImage = ImageIO.read(inputImage)
-        double skewAngle = new ImageDeskew(bufferedImage).skewAngle // determine skew angle
+        double skewAngle = new ImageDeskew(bufferedImage).skewAngle
         if ((skewAngle > MINIMUM_DESKEW_THRESHOLD || skewAngle < -(MINIMUM_DESKEW_THRESHOLD))) {
             bufferedImage = ImageHelper.rotateImage(bufferedImage, -skewAngle)
         }
@@ -278,7 +445,6 @@ class ImageService {
     File binaryInverse(File inputImage) {
         ProcessStarter.setGlobalSearchPath(IMAGE_MAGICK_PATH)
         String imgExt = getImageExt(inputImage)
-        // Create the operation, add images and operators/options
         IMOperation op = new IMOperation()
         op.addImage()
         op.density(IMAGE_DENSITY)
@@ -290,8 +456,6 @@ class ImageService {
                 .p_opaque("#000000")
                 .blur(1d,1d)
         op.addImage()
-
-        // Execute the operation
         BufferedImage bufferedImage =  ImageIO.read( inputImage )
         File outputImage = new File(inputImage.parent, "binaryInverseImg_${inputImage.name}")
         ConvertCmd convertCmd = new ConvertCmd()
@@ -341,8 +505,30 @@ class ImageService {
      * @param newExt New extension (must include '.' sign)
      * @return
      */
-    private static String getFileNameWithoutExt(File inputFile, String newExt = ''){
+    String getFileNameWithoutExt(File inputFile, String newExt = ''){
         return inputFile.name.with {it.take(it.lastIndexOf('.'))} +newExt
+    }
+    /**
+     * Delete Extracted images
+     * @param countPages
+     */
+    private void deleteDocument(int countPages){
+        for(int i = 1 ; i <= countPages ; i++){
+            File outputPdf = new File("${Constants.downloadPath}","ExtractedImage_${i}.pdf")
+            outputPdf.delete()
+        }
+    }
+    /**
+     * Rename file with the given file path and the new file name
+     * @param filePath
+     * @param newFileName
+     * @return new file with the new name
+     */
+    File renameFile(String filePath, String newFileName){
+        File outputFile = new File(filePath)
+        File newFile = new File("${outputFile.getParent()}","${newFileName}${"."}${getImageExt(outputFile)}")
+        outputFile.renameTo(newFile)
+        return newFile
     }
 
 }

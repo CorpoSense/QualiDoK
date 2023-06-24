@@ -1,7 +1,5 @@
 package com.corposense
-
 import ratpack.groovy.test.GroovyRatpackMainApplicationUnderTest
-import ratpack.test.MainClassApplicationUnderTest
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
@@ -11,7 +9,7 @@ class HomeSpec extends Specification {
 
     @AutoCleanup
     @Shared
-    GroovyRatpackMainApplicationUnderTest groovyScriptApplicationUnderTest = new GroovyRatpackMainApplicationUnderTest()
+    GroovyRatpackMainApplicationUnderTest app = new GroovyRatpackMainApplicationUnderTest()
 
     @Unroll
     def 'Response should return ok'() {
@@ -22,8 +20,8 @@ class HomeSpec extends Specification {
         response.statusCode == 200
 
         where:
-            aut                              | type
-            groovyScriptApplicationUnderTest | 'ratpack.groovy'
+            aut | type
+            app | 'ratpack.groovy'
     }
 
 

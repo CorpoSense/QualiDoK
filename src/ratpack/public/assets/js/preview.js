@@ -119,6 +119,10 @@ function strToUTF8Arr(sDOMStr) {
   return aBytes;
 }
 
+$(function(){
+    var htmlStr = $('#fullText').val();
+    $('.summernote').html(htmlStr);
+
 $("#edit").click(function(){
     $('.summernote').summernote({
         height: 300,
@@ -129,73 +133,93 @@ $("#edit").click(function(){
     $("#save").removeAttr("disabled"); // removing attribute
     $('#msg-success').addClass('hidden');
     $('#msg-failure').addClass('hidden');
+    $('#msg-warning').addClass('hidden');
 });
 
 $("#save").click(function(){
-    var encodedText = $('.summernote').code();
-    $('.summernote').destroy();
-    var imagePath = $('#uploadedImage').attr('src');
-    var directoryId = $('#folderId').val();
-    var languageId = $('#languageId').val();
+     if(!$.trim($('#fileNameId').val()).length){ // zero-length string AFTER a trim
+        $('#msg-warning').removeClass('hidden');
+        $('#msg-success').addClass('hidden');
+        $('#msg-failure').addClass('hidden');
+     }else{
+         $('#msg-warning').addClass('hidden');
+         var encodedText = $('.summernote').code();
+         $('.summernote').destroy();
 
-    var aMyUTF8Input = strToUTF8Arr(encodedText);
-    var encodedPayload = base64EncArr(aMyUTF8Input);
+         var directoryId = $('#folderId').val();
+         var languageId = $('#languageId').val();
+         var fileNameId = $('#fileNameId').val();
+         var aMyUTF8Input = strToUTF8Arr(encodedText);
+         var encodedPayload = base64EncArr(aMyUTF8Input);
 
-    $("#save").attr('disabled', 'disabled');
+         var loading = $('#loading');
+         loading.show();
 
-    var loading = $('#loading');
-    loading.show();
-
-  $.ajax({
-        url: 'save',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({'payload': encodedPayload ,
-                              'inputImage': imagePath ,
-                              'directoryId': directoryId ,
-                              'languageId': languageId })}
-        ).success(function (data) {
-            console.log(data);
-            $('#msg-success').removeClass('hidden');
-        })
-        .error(function(jqXHR, errMsg) {
-            console.log(errMsg);
-            $('#msg-failure').removeClass('hidden');
-        })
-        .always(function(jqXHR, status){
-            loading.hide();
-            $("#save").removeAttr('disabled');
-        })
+       $.ajax({
+             url: 'save',
+             type: 'POST',
+             contentType: 'application/json',
+             data: JSON.stringify({'payload': encodedPayload ,
+                                   'directoryId': directoryId ,
+                                   'languageId': languageId ,
+                                   'fileNameId': fileNameId}),
+             success: function (data) {
+                 console.log(data);
+                 loading.hide();
+                 $('#msg-success').removeClass('hidden');
+             },
+             error: function(jqXHR, errMsg) {
+                 console.log(errMsg);
+                 loading.hide();
+                 $('#msg-failure').removeClass('hidden');
+             },
+             always: function(jqXHR, status){
+                 $("#save").removeAttr('disabled');
+             }
+       });
+     }
 });
 
-
 $("#upload").click(function(){
-    console.log('upload...');
-    var outputFile = $('#outputFile').attr('src');
-    var directoryId = $('#folderId').val();
-    var languageId = $('#languageId').val();
-    var loading = $('#loading');
-    loading.show();
-    console.log('folderId\n'+directoryId, 'languageId\n'+languageId, 'outputFile\n'+outputFile);
-    $('#msg-success').addClass('hidden');
-    $('#msg-failure').addClass('hidden');
-    $.ajax({
-        url: 'uploadDoc',
-        type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({'directoryId': directoryId ,
-                              'languageId': languageId,
-                              'outputFile':outputFile }),
-        success: function (data) {
-            console.log(data);
-            $('#msg-success').removeClass('hidden');
-        },
-        error: function(jqXHR, errMsg) {
-            console.log(errMsg);
-            $('#msg-failure').removeClass('hidden');
-        },
-        always: function(jqXHR, status){
-            loading.hide();
-        }
-  });
+      if(!$.trim($('#fileNameId').val()).length){ // zero-length string AFTER a trim
+          $('#msg-warning').removeClass('hidden');
+          $('#msg-success').addClass('hidden');
+          $('#msg-failure').addClass('hidden');
+      }else{
+            var outputFile = $('#outputFile').attr('src');
+            var directoryId = $('#folderId').val();
+            var languageId = $('#languageId').val();
+            var fileNameId = $('#fileNameId').val();
+            var loading = $('#loading');
+            loading.show();
+            $('#msg-warning').removeClass('hidden');
+            $('#msg-success').addClass('hidden');
+            $('#msg-failure').addClass('hidden');
+            $.ajax({
+                url: 'uploadDoc',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({'directoryId': directoryId ,
+                                      'languageId': languageId,
+                                      'outputFile':outputFile,
+                                      'fileNameId':fileNameId }),
+                success: function (data) {
+                    console.log(data);
+                    loading.hide();
+                    $('#msg-success').removeClass('hidden');
+                    $('#msg-warning').addClass('hidden');
+                    $("#upload").prop("disabled", true);
+                },
+                error: function(jqXHR, errMsg) {
+                    console.log(errMsg);
+                    loading.hide();
+                    $('#msg-failure').removeClass('hidden');
+                    $('#msg-warning').addClass('hidden');
+                    $("#upload").prop("disabled", true);
+                }
+            });
+      }
+
+});
+
 });
