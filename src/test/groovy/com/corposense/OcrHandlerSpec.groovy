@@ -276,8 +276,8 @@ class OcrHandlerSpec extends Specification {
 
         cleanup:
         uploadedFile.deleteOnExit()
-
     }
+
     @Unroll
     def'Apply OCR processing for pdf file with produce PDF option'(){
         given:
@@ -303,10 +303,12 @@ class OcrHandlerSpec extends Specification {
         response.body().string().contains('Document generated successfully.')
 
         cleanup:
-        uploadedFile.deleteOnExit()
-        downloadedFile.deleteOnExit()
-
+        try {
+            uploadedFile.deleteOnExit()
+            downloadedFile.deleteOnExit()
+        } catch (Exception e) {}
     }
+
     @Unroll //OK
     def'Apply OCR processing for image with produce PDF option'(){
         given:
