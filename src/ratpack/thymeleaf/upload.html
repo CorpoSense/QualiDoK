@@ -2,17 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <head th:replace="partials/head" />
+    <style>
+        .form-vertical.dragover {
+            background-color: #eee;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="partials/header" />
 
 <div id="page-content" class="container">
-    <div class="row" th:if="${message} == ''">
+    <div class="row justify-content-center" th:if="${message} == ''">
         <div class="col-md-12">
             <div class="alert alert-info">
                 <p th:text="${message}"></p>
             </div>
-            <p>
+            <p class="text-center">
                 Click <a href="/server">here to create a new Server account.</a>
             </p>
         </div>
@@ -20,30 +25,42 @@
 
     <div class="row">
         <div class="col-md-6">
-            <h2>Upload a document</h2>
+            <div class="row">
+            <div class="page-header">
+                <h1 class="text-center">Upload a document</h1>
+            </div>
             <!-- Upload Form -->
             <form id="doc-upload" action="upload" method="post" class="form-vertical" role="form" enctype="multipart/form-data">
                 <div class="form-group">
-                    <label class="control-label" for="input-doc">Select a document:</label>
-                    <input type="file" name="input-doc" id="input-doc" multiple="multiple" class="form-control">
+                    <input type="file" name="input-doc" id="input-doc" multiple="multiple" class="form-control" aria-describedby="helpBlock">
+                    <span id="helpBlock" class="help-block">You can drag and drop any supported files: *.txt, *.pdf, *.doc[x], *.jpg, *.png</span>
                 </div>
 
                 <div class="form-group">
-                    <select id="type-ocr" name="type-ocr" class="form-control">
-                        <option value="extract-text">Extract text (Manuel)</option>
-                        <option value="produce-pdf">Create a PDF (Auto)</option>
-                    </select>
+                    <div class="radio">
+                        <label for="extract-text">
+                            <input type="radio" name="type-ocr" id="extract-text" value="extract-text" checked>
+                            Extract text (Manuel)
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label for="produce-pdf">
+                            <input type="radio" name="type-ocr" id="produce-pdf" value="produce-pdf">
+                            Create a PDF (Auto)
+                        </label>
+                    </div>
                 </div>
                 
-                <div id="loading" style="display: none;">
-                    <img th:src="@{/assets/images/loading.gif}" />
-                    <p>Processing document... (please wait)</p>
-                </div>
-                <div class="form-group pull-right">
-                    <input type="submit" class="btn btn-primary" value="Upload">
-                </div>
+                    <div id="loading" style="display: none;">
+                        <img th:src="@{/assets/images/loading.gif}" />
+                        <p>Processing document... (please wait)</p>
+                    </div>
+                    <div class="form-group pull-right">
+                        <input type="submit" class="btn btn-primary" value="Upload">
+                    </div>
 
-            </form>
+                </form>
+            </div><!-- .row -->
         </div><!-- .col-md-6 -->
 
     </div><!-- .row -->
