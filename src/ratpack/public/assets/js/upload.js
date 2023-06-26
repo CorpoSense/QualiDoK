@@ -28,35 +28,34 @@ $(function(){
     });
 
 
-    var $fileInput = $('.file-input');
-    var $droparea = $('.file-drop-area');
-    var $delete = $('.item-delete');
-
-    // Add event listeners
-    $fileInput.on('dragenter focus click', function() {
-        $droparea.addClass('is-active');
-    });
-
-    $fileInput.on('dragleave blur drop', function() {
-        $droparea.removeClass('is-active');
-    });
+    var $fileInput = $('#input-doc');
 
     $fileInput.on('change', function() {
-        var filesCount = $(this)[0].files.length;
-        var $textContainer = $(this).prev('.js-set-number');
+        var fileInput = this.files[0];
+        var $textContainer = $('#docInfo');
+        var fileInfo = '';
+        if (this.files.length === 1) {
+            var fileName = fileInput.name;
+            var fileSize = fileInput.size;
+            var fileType = fileInput.type;
 
-        if (filesCount === 1) {
-            $textContainer.text($(this).val().split('\\').pop());
+            fileInfo = '<b>File Name</b>: '+ fileName + '<br>' +
+                '<b>File Size</b>: '+ formatBytes(fileSize) + '. <br>' +
+                '<b>File Type</b>: '+ fileType;
+            $textContainer.html(fileInfo);
         } else {
-            $textContainer.text(filesCount + ' files selected');
+            $textContainer.html('<b>'+this.files.length + '</b> files selected');
         }
     });
 
-    $delete.on('click', function(e) {
-        e.preventDefault();
-        $fileInput.val('');
-        $droparea.removeClass('is-active');
-        $(this).hide();
-    });
-
 });
+
+function formatBytes(bytes, decimals = 2) {
+    if (!+bytes) return '0 Bytes';
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'Kb', 'Mb', 'Gb', 'Tb'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const fileSize = parseFloat((bytes / Math.pow(k, i)).toFixed(dm));
+    return fileSize + ' ' + sizes[i];
+}
