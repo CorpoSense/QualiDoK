@@ -18,6 +18,13 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    services:
+      logicaldoc:
+        image: logicaldoc/logicaldoc-ce
+        ports:
+          - 8080:8080
+        options: --health-cmd "curl -f http://localhost:8080 || exit 1"
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
