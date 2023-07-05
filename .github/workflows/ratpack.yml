@@ -42,19 +42,19 @@ jobs:
 #        options: --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
 
     # Using HSQLDB the embedded database instead of MySQL
-     services:
-       logicaldoc:
-         image: logicaldoc/logicaldoc-ce:8.6.1
-         env:
-           DB_ENGINE: "hsqldb"
-           DB_HOST: ""
-           DB_PORT: ""
-           DB_NAME: ""
-           DB_USER: "sa"
-           DB_PASSWORD: ""
-         ports:
-           - 8080:8080
-         options: --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
+    services:
+     logicaldoc:
+       image: logicaldoc/logicaldoc-ce:8.6.1
+       env:
+         DB_ENGINE: "hsqldb"
+         DB_HOST: ""
+         DB_PORT: ""
+         DB_NAME: ""
+         DB_USER: "sa"
+         DB_PASSWORD: ""
+       ports:
+         - 8080:8080
+       options: --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
 
     steps:
     - uses: actions/checkout@v2
