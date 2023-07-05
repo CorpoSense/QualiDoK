@@ -9,7 +9,17 @@ class HomeSpec extends Specification {
 
     @AutoCleanup
     @Shared
-    GroovyRatpackMainApplicationUnderTest app = new GroovyRatpackMainApplicationUnderTest()
+    GroovyRatpackMainApplicationUnderTest app
+
+    def setupSpec() {
+        try {
+            app = new GroovyRatpackMainApplicationUnderTest()
+        } catch (Exception e) {
+            e.printStackTrace()
+            throw e
+        }
+    }
+    
 
     @Unroll
     def 'Response should return ok'() {

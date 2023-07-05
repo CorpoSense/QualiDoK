@@ -41,6 +41,21 @@ jobs:
           - 8080:8080
         options: --health-cmd "curl -f http://localhost:8080 || exit 1"
 
+    # Using HSQLDB the embedded database instead of MySQL
+    # services:
+    #   logicaldoc:
+    #     image: logicaldoc/logicaldoc-ce:8.6.1
+    #     env:
+    #       DB_ENGINE: "hsqldb"
+    #       DB_HOST: ""
+    #       DB_PORT: ""
+    #       DB_NAME: ""
+    #       DB_USER: "sa"
+    #       DB_PASSWORD: ""
+    #     ports:
+    #       - 8080:8080
+    #     options: --health-cmd "curl -f http://localhost:8080 || exit 1"
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
