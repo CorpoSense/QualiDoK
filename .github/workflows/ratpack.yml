@@ -19,8 +19,24 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: logicaldoc
+          MYSQL_USER: ldoc
+          MYSQL_PASSWORD: changeme
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+
       logicaldoc:
-        image: logicaldoc/logicaldoc-ce
+        image: logicaldoc/logicaldoc-ce:8.6.1
+        env:
+          DB_ENGINE: mysql
+          DB_HOST: mysql
+          DB_PORT: 3306
+          DB_NAME: logicaldoc
+          DB_USER: ldoc
+          DB_PASSWORD: changeme
         ports:
           - 8080:8080
         options: --health-cmd "curl -f http://localhost:8080 || exit 1"
