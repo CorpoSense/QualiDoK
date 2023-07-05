@@ -16,29 +16,32 @@ on:
 jobs:
   prepare:
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: logicaldoc
-          MYSQL_USER: ldoc
-          MYSQL_PASSWORD: changeme
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10 --default-authentication-plugin=mysql_native_password
+    steps:
+    - name: Run LogicalDOC-CE
+      run: echo "Running LogicalDOC-CE"
+      services:
+        mysql:
+          image: mysql:8.0
+          env:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: logicaldoc
+            MYSQL_USER: ldoc
+            MYSQL_PASSWORD: changeme
+          options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10 --default-authentication-plugin=mysql_native_password
 
-      #Please note that the --link option is a legacy feature of Docker and might not be available in future versions.
-      logicaldoc:
-        image: logicaldoc/logicaldoc-ce:8.6.1
-        env:
-          DB_ENGINE: mysql
-          DB_HOST: mysql
-          DB_PORT: 3306
-          DB_NAME: logicaldoc
-          DB_USER: ldoc
-          DB_PASSWORD: changeme
-        ports:
-          - 8080:8080
-        options: --link mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
+        #Please note that the --link option is a legacy feature of Docker and might not be available in future versions.
+        logicaldoc:
+          image: logicaldoc/logicaldoc-ce:8.6.1
+          env:
+            DB_ENGINE: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_NAME: logicaldoc
+            DB_USER: ldoc
+            DB_PASSWORD: changeme
+          ports:
+            - 8080:8080
+          options: --link mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
 
   build:
     needs: prepare
