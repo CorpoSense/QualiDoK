@@ -34,3 +34,9 @@ tasks:
 #curl -X GET 'http://0.0.0.0:8080/services/rest/folder/listChildren?folderId=4' -H 'accept: application/json' -H 'authorization: Basic YWRtaW46YWRtaW4=' -H 'cache-control: no-cache'
 # or
 #curl -u admin:admin -H 'Accept: application/json' http://0.0.0.0:8080/services/rest/folder/listChildren?folderId=4
+
+# Install Github-CLI on Gitpod
+#curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+#echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+#sudo apt update
+#sudo apt install gh
