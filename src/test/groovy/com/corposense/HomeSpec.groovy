@@ -19,7 +19,6 @@ class HomeSpec extends Specification {
             throw e
         }
     }
-    
 
     @Unroll
     def 'Response should return ok'() {
@@ -33,6 +32,5 @@ class HomeSpec extends Specification {
             aut | type
             app | 'ratpack.groovy'
     }
-
 
 }

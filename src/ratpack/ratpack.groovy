@@ -64,11 +64,15 @@ ratpack {
 
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
+                String hostUrl = 'http://0.0.0.0:8080/logicaldoc'
+                if (System.getenv('GITPOD_HOST') || System.getenv('GITHUB_ACTIONS')){
+                    hostUrl = 'http://127.0.0.1:8080'
+                }
                 sleep(500)
                 event.registry.get(AccountService)
                         .create(new Account(
                                 name: 'Main Server',
-                                url: (System.getenv('GITPOD_HOST')?'http://127.0.0.1:8080':'http://0.0.0.0:8080/logicaldoc'),
+                                url: hostUrl,
                                 username: 'admin',
                                 password: 'admin',
                                 active: true
