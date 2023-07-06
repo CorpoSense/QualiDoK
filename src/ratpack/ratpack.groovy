@@ -108,6 +108,7 @@ ratpack {
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
+                    render(view('index', ['directories': null, 'account': null]))
 //                    if (!System.getenv('GITHUB_ACTIONS')){
 //                        Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
 //                        Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
