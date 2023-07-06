@@ -65,8 +65,10 @@ ratpack {
         add Service.startup('startup'){ StartEvent event ->
             if (serverConfig.development){
                 String hostUrl = 'http://0.0.0.0:8080/logicaldoc'
-                if (System.getenv('GITPOD_HOST') || System.getenv('GITHUB_ACTIONS')){
+                if (System.getenv('GITPOD_HOST')) {
                     hostUrl = 'http://127.0.0.1:8080'
+                } else if (System.getenv('GITHUB_ACTIONS')){
+                    hostUrl = 'http://logicaldoc:8080'
                 }
                 sleep(500)
                 event.registry.get(AccountService)
