@@ -24,7 +24,7 @@ jobs:
           MYSQL_DATABASE: logicaldoc
           MYSQL_USER: ldoc
           MYSQL_PASSWORD: changeme
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10 --default-authentication-plugin=mysql_native_password
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
 
       #Please note that the --link option is a legacy feature of Docker and might not be available in future versions.
       logicaldoc:
