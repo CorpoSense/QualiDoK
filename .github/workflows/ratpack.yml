@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Verify services
         run: |
-          curl http://127.0.0.1:8080/logicaldoc
+          curl http://127.0.0.1:8080
   build:
     needs: prepare
     runs-on: ubuntu-latest

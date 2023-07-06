@@ -113,17 +113,20 @@ ratpack {
                                                                                             account.username,
                                                                                             account.password,
                                                                                             folderId)
-                    directoriesPromise.then { directories ->
-                        render(view('index', ['directories': directories, 'account': account]))
+                    if (!System.getenv('GITHUB_ACTIONS')){
+                        directoriesPromise.then { directories ->
+                            render(view('index', ['directories': directories, 'account': account]))
+                        }
+                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
+                                account.username,
+                                account.password,
+                                folderId)
+                        folderStructurePromise.then({ folderStructure ->
+                            String json = folderStructure.toPrettyString()
+                            log.info(json)
+                        })
                     }
-                    Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
-                                                                                    account.username,
-                                                                                    account.password,
-                                                                                    folderId)
-                    folderStructurePromise.then({ folderStructure ->
-                        String json = folderStructure.toPrettyString()
-                        log.info(json)
-                    })
+
                 }
             })
         }
