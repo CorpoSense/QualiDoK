@@ -38,11 +38,11 @@ jobs:
           DB_PASSWORD: changeme
         ports:
           - 8080:8080
-        options: --link mysql:mysql
+        options: --link mysql:mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
     steps:
       - name: Verify services
         run: |
-          curl http://127.0.0.1:8080
+          curl http://127.0.0.1:8080/logicaldoc
   build:
     needs: prepare
     runs-on: ubuntu-latest
