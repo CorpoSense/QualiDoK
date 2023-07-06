@@ -38,7 +38,7 @@ jobs:
           DB_PASSWORD: changeme
         ports:
           - 8080:8080
-        options: --link mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
+        options: --link mysql:mysql
     steps:
       - name: Verify services
         run: |
