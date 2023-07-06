@@ -108,24 +108,25 @@ ratpack {
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
-                    Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                    Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
-                                                                                            account.username,
-                                                                                            account.password,
-                                                                                            folderId)
-                    if (!System.getenv('GITHUB_ACTIONS')){
-                        directoriesPromise.then { directories ->
-                            render(view('index', ['directories': directories, 'account': account]))
-                        }
-                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
-                                account.username,
-                                account.password,
-                                folderId)
-                        folderStructurePromise.then({ folderStructure ->
-                            String json = folderStructure.toPrettyString()
-                            log.info(json)
-                        })
-                    }
+//                    if (!System.getenv('GITHUB_ACTIONS')){
+//                        Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
+//                        Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
+//                                                                                                account.username,
+//                                                                                                account.password,
+//                                                                                                folderId)
+//
+//                        directoriesPromise.then { directories ->
+//                            render(view('index', ['directories': directories, 'account': account]))
+//                        }
+//                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
+//                                account.username,
+//                                account.password,
+//                                folderId)
+//                        folderStructurePromise.then({ folderStructure ->
+//                            String json = folderStructure.toPrettyString()
+//                            log.info(json)
+//                        })
+//                    }
 
                 }
             })
