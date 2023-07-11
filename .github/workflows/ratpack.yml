@@ -51,9 +51,10 @@ jobs:
       - name: Wait on check
         uses: lewagon/wait-on-check-action@v1.3.1
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
+          check-name: 'Verify services'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          check-name: "Verify services"
+          wait-interval: 20
 
       - name: Check out
         uses: actions/checkout@v3
