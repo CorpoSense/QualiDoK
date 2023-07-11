@@ -40,22 +40,21 @@ jobs:
           - 8080:8080
         options: --link mysql:mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
     steps:
+      - name: Start services
+        run: echo "Services started"
+
+  verify_services:
+    needs: start_services
+    runs-on: ubuntu-latest
+    steps:
       - name: Verify services
         run: |
           curl http://localhost:8080
+
   build:
+    needs: verify_services
     runs-on: ubuntu-latest
     steps:
-      # We'll use "wait-on-check-action" instead of "needs" here
-      #    needs: prepare
-      - name: Wait on check
-        uses: lewagon/wait-on-check-action@v1.3.1
-        with:
-          ref: ${{ github.sha }}
-          check-name: 'Verify services'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 20
-
       - name: Check out
         uses: actions/checkout@v3
 
@@ -65,19 +64,9 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-#      - name: Validate Gradle wrapper
-#        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
-
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2.5.1
-#        uses: gradle/gradle-build-action@937999e9cc2425eddc7fd62d1053baf041147db7
-#        with:
-#          arguments: build
-#      - uses: actions/upload-artifact@v2
-#        with:
-#          name: Package
-#          path: build/libs
-# you may need to: git update-index --chmod=+x gradlew
+
       - name: Execute Gradle build
         run: ./gradlew build
 # Build and save a report
