@@ -44,9 +44,17 @@ jobs:
         run: |
           curl http://localhost:8080
   build:
-    needs: prepare
     runs-on: ubuntu-latest
     steps:
+      # We'll use "wait-on-check-action" instead of "needs" here
+      #    needs: prepare
+      - name: Wait on check
+        uses: lewagon/wait-on-check-action@v1.3.1
+        with:
+          ref: ${{ github.ref }}
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          check-name: "Verify services"
+
       - name: Check out
         uses: actions/checkout@v3
 
