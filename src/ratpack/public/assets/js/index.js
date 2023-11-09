@@ -1,4 +1,6 @@
 var directories = $('#directories').val();
+if (directories){
+
     var dir = JSON.parse(directories);
     var columns = [{
       field: 'id',
@@ -16,6 +18,8 @@ var directories = $('#directories').val();
       field: 'creator',
       title: 'Creator'
     }];
+}
+
 $(document).ready(function() {
     $('#table').bootstrapTable({
        toggle: 'table',
