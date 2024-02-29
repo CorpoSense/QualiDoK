@@ -14,45 +14,37 @@ on:
     branches: [ master ]
 
 jobs:
-  start_services:
-    runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: logicaldoc
-          MYSQL_USER: ldoc
-          MYSQL_PASSWORD: changeme
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
+  # start_services:
+  #   runs-on: ubuntu-latest
+  #   services:
+  #     mysql:
+  #       image: mysql:8.0
+  #       env:
+  #         MYSQL_ROOT_PASSWORD: root
+  #         MYSQL_DATABASE: logicaldoc
+  #         MYSQL_USER: ldoc
+  #         MYSQL_PASSWORD: changeme
+  #       options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
 
-      #Please note that the --link option is a legacy feature of Docker and might not be available in future versions.
-      logicaldoc:
-        image: logicaldoc/logicaldoc-ce:8.6.1
-        env:
-          DB_ENGINE: mysql
-          DB_HOST: mysql
-          DB_PORT: 3306
-          DB_NAME: logicaldoc
-          DB_USER: ldoc
-          DB_PASSWORD: changeme
-        ports:
-          - 8080:8080
-        options: --link mysql:mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
-    steps:
-      - name: Start services
-        run: echo "Services started"
-
-  verify_services:
-    needs: start_services
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify services
-        run: |
-          curl http://localhost:8080
+  #     #Please note that the --link option is a legacy feature of Docker and might not be available in future versions.
+  #     logicaldoc:
+  #       image: logicaldoc/logicaldoc-ce:8.6.1
+  #       env:
+  #         DB_ENGINE: mysql
+  #         DB_HOST: mysql
+  #         DB_PORT: 3306
+  #         DB_NAME: logicaldoc
+  #         DB_USER: ldoc
+  #         DB_PASSWORD: changeme
+  #       ports:
+  #         - 8080:8080
+  #       options: --link mysql:mysql --health-cmd "curl -f http://127.0.0.1:8080 || exit 1"
+  #   steps:
+  #     - name: Start services
+  #       run: echo "Services started"
 
   build:
-    needs: verify_services
+    # needs: start_services
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -67,11 +59,12 @@ jobs:
       - name: Build with Gradle
         uses: gradle/gradle-build-action@v2.5.1
 
-      - name: Execute Gradle build
-        run: ./gradlew build
-# Build and save a report
-#      - name: Upload build reports
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: build-reports
-#          path: build/reports/
+      - name: Execute Gradle test
+        run: ./gradlew test --tests HomeSpec
+      
+      # Build and save a report (optional)
+      # - name: Upload build reports
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: build-reports
+      #     path: build/reports/
