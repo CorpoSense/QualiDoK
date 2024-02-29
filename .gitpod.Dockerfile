@@ -21,3 +21,11 @@ USER gitpod
 
 # add executables to PATH
 RUN echo 'export PATH=${TESSDATA_PREFIX}:$PATH' >>~/.bashrc
+
+# Install act tool (https://github.com/nektos/act)
+RUN brew install act
+
+# List all actions for all events:
+# act -l
+# Run a specific job:
+#act -j job_name
