@@ -108,17 +108,17 @@ ratpack {
                 if (accounts.isEmpty() || !account){
                     render(view("index", [message:'You must create a server account.']))
                 } else {
-                    render(view('index', ['directories': null, 'account': null]))
+//                    render(view('index', ['directories': null, 'account': null]))
 //                    if (!System.getenv('GITHUB_ACTIONS')){
-//                        Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-//                        Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
-//                                                                                                account.username,
-//                                                                                                account.password,
-//                                                                                                folderId)
+                        Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                        Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
+                                                                                                account.username,
+                                                                                                account.password,
+                                                                                                folderId)
 //
-//                        directoriesPromise.then { directories ->
-//                            render(view('index', ['directories': directories, 'account': account]))
-//                        }
+                        directoriesPromise.then { directories ->
+                            render(view('index', ['directories': directories, 'account': account]))
+                        }
 //                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
 //                                account.username,
 //                                account.password,

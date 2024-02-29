@@ -79,7 +79,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'Perform Ocr on uploaded pdf file with extract text option'() {
+    def 'Perform Ocr on uploaded pdf file with extract text option'() {
         given:
         def inputFile = new File("src/main/resources/files/demojournal.pdf")
         RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
@@ -104,7 +104,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload searchable pdf file with extract text option'() {
+    def 'upload searchable pdf file with extract text option'() {
         given:
         def inputFile= new File("src/main/resources/files/searchablePdf.pdf")
         RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
@@ -129,7 +129,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //Ok
-    def'extract text from uploaded text file with extract text option'(){
+    def 'extract text from uploaded text file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/text.txt")
         RequestBody body = RequestBody.create(MediaType.parse('text/plain'), inputFile)
@@ -155,7 +155,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'extract content from uploaded Doc file with extract text option'(){
+    def 'extract content from uploaded Doc file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/wordDoc.doc")
         String contentType = 'application/msword'
@@ -182,7 +182,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'extract content from uploaded Docx file with extract text option'(){
+    def 'extract content from uploaded Docx file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/officeDocx.docx")
         String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -209,7 +209,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload password protected Doc file with extract text option'(){
+    def 'upload password protected Doc file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/encryptDoc.doc")
         String contentType = 'application/msword'
@@ -236,7 +236,7 @@ class OcrHandlerSpec extends Specification {
         uploadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload password protected Docx file with extract text option'(){
+    def 'upload password protected Docx file with extract text option'(){
         given:
         def inputFile= new File("src/main/resources/files/encryptDocx.docx")
         String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -264,7 +264,7 @@ class OcrHandlerSpec extends Specification {
     }
 
     @Unroll //OK
-    def'Upload searchable pdf file with produce PDF option'(){
+    def 'Upload searchable pdf file with produce PDF option'(){
         given:
         def inputFile= new File("src/main/resources/files/searchablePdf.pdf")
         RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
@@ -290,7 +290,7 @@ class OcrHandlerSpec extends Specification {
     }
 
     @Unroll
-    def'Apply OCR processing for pdf file with produce PDF option'(){
+    def 'Apply OCR processing for pdf file with produce PDF option'(){
         given:
         def inputFile = new File("src/main/resources/files/demojournal.pdf")
         RequestBody body =  RequestBody.create(MediaType.parse('application/pdf'), inputFile)
@@ -321,7 +321,7 @@ class OcrHandlerSpec extends Specification {
     }
 
     @Unroll //OK
-    def'Apply OCR processing for image with produce PDF option'(){
+    def 'Apply OCR processing for image with produce PDF option'(){
         given:
         def inputFile= new File("src/main/resources/files/image3.jpg")
         RequestBody body = RequestBody.create(MediaType.parse('image/jpeg'), inputFile)
@@ -350,7 +350,7 @@ class OcrHandlerSpec extends Specification {
         downloadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload password protected Doc file with produce pdf option'(){
+    def 'upload password protected Doc file with produce pdf option'(){
         given:
         def inputFile= new File("src/main/resources/files/encryptDoc.doc")
         String contentType = 'application/msword'
@@ -380,7 +380,7 @@ class OcrHandlerSpec extends Specification {
         downloadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'upload password protected Docx file with produce pdf option'(){
+    def 'upload password protected Docx file with produce pdf option'(){
         given:
         def inputFile= new File("src/main/resources/files/encryptDocx.docx")
         String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -410,7 +410,7 @@ class OcrHandlerSpec extends Specification {
         downloadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'Create pdf file from uploaded Doc file with produce pdf option'(){
+    def 'Create pdf file from uploaded Doc file with produce pdf option'(){
         given:
         def inputFile = new File("src/main/resources/files/wordDoc.doc")
         String contentType = 'application/msword'
@@ -440,7 +440,7 @@ class OcrHandlerSpec extends Specification {
         downloadedFile.deleteOnExit()
     }
     @Unroll //OK
-    def'Create pdf file from uploaded Docx file with produce pdf option'(){
+    def 'Create pdf file from uploaded Docx file with produce pdf option'(){
         given:
         def inputFile= new File("src/main/resources/files/officeDocx.docx")
         String contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -469,7 +469,7 @@ class OcrHandlerSpec extends Specification {
         downloadedFile.deleteOnExit()
     }
     @Unroll //Ok
-    def'Create pdf file from uploaded text file with produce pdf option'(){
+    def 'Create pdf file from uploaded text file with produce pdf option'(){
         given:
         def inputFile= new File("src/main/resources/files/text.txt")
         RequestBody body = RequestBody.create(MediaType.parse('text/plain'), inputFile)
