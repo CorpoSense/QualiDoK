@@ -61,8 +61,8 @@ ratpack {
         bind(AccountHandler)
         bind(DirectoriesService)
 
-
         add Service.startup('startup'){ StartEvent event ->
+            event.registry.get(AccountService)
             if (serverConfig.development){
                 String hostUrl = 'http://0.0.0.0:8080/logicaldoc'
                 if (System.getenv('GITPOD_HOST')) {
@@ -71,8 +71,7 @@ ratpack {
                     hostUrl = 'http://logicaldoc:8080'
                 }
                 sleep(500)
-                event.registry.get(AccountService)
-                        .create(new Account(
+                event.registry.get(AccountService).create(new Account(
                                 name: 'Main Server',
                                 url: hostUrl,
                                 username: 'admin',

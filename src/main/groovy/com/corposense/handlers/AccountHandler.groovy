@@ -52,6 +52,7 @@ class AccountHandler implements Action<Chain> {
                     get {
                         accountService.all.then { List<Account> accounts ->
                             render(view('server', [servers: accounts]))
+//                            render(json(accounts)) // This is better to separate the API from UI
                         }
                     }
                     post {
