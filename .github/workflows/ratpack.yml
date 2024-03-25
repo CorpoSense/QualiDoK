@@ -30,8 +30,9 @@ jobs:
         uses: gradle/gradle-build-action@v2.5.1
 
       - name: Execute Gradle test
-        run: ./gradlew test --tests HomeSpec
-      
+        run: ./gradlew test
+#        run: ./gradlew test --tests HomeSpec
+
       # Build and save a report (optional)
       # - name: Upload build reports
       #   uses: actions/upload-artifact@v3

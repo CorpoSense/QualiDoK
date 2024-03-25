@@ -15,7 +15,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ratpack.exec.Promise
 import ratpack.hikari.HikariModule
+import ratpack.http.Status
 import ratpack.http.client.HttpClient
+import ratpack.jackson.Jackson
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
@@ -101,6 +103,25 @@ ratpack {
     }
     handlers {
 
+        // TODO: All endpoints should go to a server without rendering any UI
+        get('api'){ AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
+            accountService.getActive().then({ List<Account> accounts ->
+                Account account = accounts[0]
+                if (accounts.isEmpty() || !account) {
+                    response.status(Status.UNAUTHORIZED).send('No account provided.')
+                } else {
+                    Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                    Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
+                            account.username,
+                            account.password,
+                            folderId)
+                    directoriesPromise.then { def directories ->
+                        render(directories)
+                    }
+                }
+            })
+        }
+
         get { AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
             accountService.getActive().then({ List<Account> accounts ->
                 Account account = accounts[0]
@@ -126,7 +147,8 @@ ratpack {
 //                            String json = folderStructure.toPrettyString()
 //                            log.info(json)
 //                        })
-//                    }
+
+//                    } // GITHUB_ACTIONS check
 
                 }
             })

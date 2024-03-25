@@ -12,7 +12,6 @@ import ratpack.exec.Promise
 import ratpack.http.client.HttpClient
 import ratpack.http.client.ReceivedResponse
 
-
 class DirectoriesService {
 
     private JsonSlurper jsonSlurper
@@ -28,9 +27,10 @@ class DirectoriesService {
         try {
             URI uri = getListChildrenUri(url, folderId)
             Promise<ReceivedResponse> responsePromise = sendGetRequest(client, uri, username, password)
-            return responsePromise.map({ response ->
+            return responsePromise.map({ def response ->
                 checkResponseStatus(response)
                 List<Map<String, Object>> directories = parseJsonResponse(response)
+                // TODO: The conversion to JSON should be done at the output stage
                 return JsonOutput.toJson(directories)
             })
         } catch (URISyntaxException e) {
@@ -72,7 +72,7 @@ class DirectoriesService {
                 ObjectNode subFolder = createSubFolderNode(id, name)
 
                 Promise<ObjectNode> subFolderPromise = getFolderStructure(client, url, username, password, id)
-                subFolderPromise.then({ subFolderStructure -> subFolder.set("subFolders", subFolderStructure) })
+                subFolderPromise.then({ def subFolderStructure -> subFolder.set("subFolders", subFolderStructure) })
                 subFolders.add(subFolder)
             }
 

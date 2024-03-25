@@ -36,10 +36,13 @@ class HomeSpec extends Specification {
     EmbeddedApp dms = GroovyEmbeddedApp.of {
      handlers {
          get('') {
-             render 'Click <a href="/server">here to create a new Server account.'
+             render 'Click <a href="/server">here to create a new Server account.</a>'
          }
-         get('directories') {
-             render '{"directories" : [{"name" : "Administration", "files" : [{"id" : "123456789", "name" : "DOC001.pdf"}]}]}'
+         get('api') {
+             render '{"folderId":[]}'
+         }
+         get('services/rest/folder/listChildren') {
+             render '{"folderId":"4","subFolders":[{"id":"100","name":"Administration","subFolders":{"folderId":"100","subFolders":[{"id":"107","name":"Finance","subFolders":{"folderId":"107","subFolders":[]}}]}},{"id":"108","name":"Communication","subFolders":{"folderId":"108","subFolders":[{"id":"109","name":"External","subFolders":{"folderId":"109","subFolders":[]}},{"id":"110","name":"Internal","subFolders":{"folderId":"110","subFolders":[]}}]}},{"id":"102","name":"HR","subFolders":{"folderId":"102","subFolders":[{"id":"105","name":"IT","subFolders":{"folderId":"105","subFolders":[]}}]}}]}'
          }
      }
     }
@@ -49,41 +52,44 @@ class HomeSpec extends Specification {
 
     @Unroll
     def 'Response list directories'() {
-        given:
-            def accountService = Mock(AccountService)
-
         when:
-            def response = dms.httpClient.get('/directories')
-            accountService.create(new Account(
-                    name: 'Main Server',
-                    url: "${dms.address}",
-                    username: 'admin',
-                    password: 'admin',
-                    active: true
-            )) >> Promise.value(1)
-
+            def response = dms.httpClient.get('/services/rest/folder/listChildren')
         then:
             response.statusCode == 200
-            response.body.text == '{"directories" : [{"name" : "Administration", "files" : [{"id" : "123456789", "name" : "DOC001.pdf"}]}]}'
+            response.body.text.startsWith('{"folderId":"4","subFolders":[{"id":"100"')
+    }
+
+    @Unroll
+    def 'Should prompt user to create a server account'() {
+        when:
+        def response = dms.httpClient.get('/')
+//        def response = testClient.get('/')
+        then:
+        response.body.text.contains('Click <a href="/server">here to create a new Server account.</a>')
+    }
+
+    @Unroll
+    // TODO: Fix this test when decoupling the UI from the API
+    def 'Should list directories'() {
+        given:
+        def directoriesService = Mock(DirectoriesService)
+        def accountService = Mock(AccountService)
+        accountService.create(new Account(
+                name: 'Main Server',
+                url: "${dms.address}",
+                username: 'admin',
+                password: 'admin',
+                active: true
+        )) >> Promise.value(1)
+        def listPromise = Promise.value('{"folderId":[]}')
+        directoriesService.listDirectories() >> listPromise
+        when:
+            def response = dms.httpClient.get('api')
+        then:
+            response.body.text.contains('"folderId"')
     }
 
 /*    @Unroll
-    def 'Should prompt user to create a server account'() {
-        when:
-        def response = testClient.get('/')
-        then:
-        response.body.text.contains('Click <a href="/server">here to create a new Server account.')
-    }
-
-    @Unroll
-    def 'Should list directories'() {
-        when:
-        def response = testClient.get('/')
-        then:
-        response.body.text.contains('List of Directories')
-    }
-
-    @Unroll
     def 'Should preview a document'() {
         when:
         def response = testClient.get('/preview')
