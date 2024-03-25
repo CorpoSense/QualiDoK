@@ -69,8 +69,6 @@ ratpack {
                 String hostUrl = 'http://0.0.0.0:8080/logicaldoc'
                 if (System.getenv('GITPOD_HOST')) {
                     hostUrl = 'http://127.0.0.1:8080'
-                } else if (System.getenv('GITHUB_ACTIONS')){
-                    hostUrl = 'http://logicaldoc:8080'
                 }
                 sleep(500)
                 event.registry.get(AccountService).create(new Account(
@@ -129,7 +127,6 @@ ratpack {
                     render(view("index", [message:'You must create a server account.']))
                 } else {
 //                    render(view('index', ['directories': null, 'account': null]))
-//                    if (!System.getenv('GITHUB_ACTIONS')){
                         Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
                         Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
                                                                                                 account.username,
@@ -139,17 +136,14 @@ ratpack {
                         directoriesPromise.then { directories ->
                             render(view('index', ['directories': directories, 'account': account]))
                         }
-//                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
-//                                account.username,
-//                                account.password,
-//                                folderId)
-//                        folderStructurePromise.then({ folderStructure ->
-//                            String json = folderStructure.toPrettyString()
-//                            log.info(json)
-//                        })
-
-//                    } // GITHUB_ACTIONS check
-
+                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
+                                account.username,
+                                account.password,
+                                folderId)
+                        folderStructurePromise.then({ folderStructure ->
+                            String json = folderStructure.toPrettyString()
+                            log.info(json)
+                        })
                 }
             })
         }
