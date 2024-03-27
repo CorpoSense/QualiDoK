@@ -10,7 +10,7 @@ import com.corposense.services.AccountService
 import com.corposense.services.DirectoriesService
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.zaxxer.hikari.HikariConfig
-
+import groovy.json.JsonOutput
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ratpack.exec.Promise
@@ -170,6 +170,32 @@ ratpack {
 
         prefix('server') {
             all(chain(registry.get(AccountHandler)))
+        }
+
+        get('search') { AccountService accountService, HttpClient client ->
+            accountService.getActive().then({ List<Account> accounts ->
+                Account account = accounts[0]
+                if (accounts.isEmpty() || !account){
+                    render(view("index", [message:'You must create a server account.']))
+                } else {
+                    def url = "${account.url}/services/rest/search/find".toURI()
+                    def pattern = request.queryParams['pattern']?:''
+                    def maxHits = request.queryParams['maxHits']?:10
+                    def folderId = request.queryParams['folderId']?:FOLDER_ID
+                    client.request(url, { def reqSpec ->
+                        reqSpec.basicAuth(account.username, account.password)
+                        reqSpec.headers.set ("Accept", 'application/json')
+                        reqSpec.method('POST').body { def body ->
+                            body.text('{ "maxHits": '+maxHits+', "expression": "'+pattern+'", "expressionLanguage": "fr", "language": "fr", "folderId": '+folderId+' }')
+                        }.headers { def headers ->
+                            headers.set('Content-type','application/json')
+                        }
+                    }).then { def res ->
+                        response.contentType('application/json').send(res.body.text)
+                    }
+                }
+                })
+
         }
 
         // Serve public files (assets...)
