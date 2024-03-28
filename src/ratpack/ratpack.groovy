@@ -10,14 +10,15 @@ import com.corposense.services.AccountService
 import com.corposense.services.DirectoriesService
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.zaxxer.hikari.HikariConfig
-import groovy.json.JsonOutput
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import ratpack.exec.Promise
 import ratpack.hikari.HikariModule
+import ratpack.http.MutableHeaders
 import ratpack.http.Status
 import ratpack.http.client.HttpClient
-import ratpack.jackson.Jackson
+import ratpack.http.client.ReceivedResponse
+import ratpack.http.client.RequestSpec
 import ratpack.service.Service
 import ratpack.service.StartEvent
 import ratpack.thymeleaf3.ThymeleafModule
@@ -102,22 +103,68 @@ ratpack {
     handlers {
 
         // TODO: All endpoints should go to a server without rendering any UI
-        get('api'){ AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
-            accountService.getActive().then({ List<Account> accounts ->
-                Account account = accounts[0]
-                if (accounts.isEmpty() || !account) {
-                    response.status(Status.UNAUTHORIZED).send('No account provided.')
-                } else {
-                    Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                    Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
-                            account.username,
-                            account.password,
-                            folderId)
-                    directoriesPromise.then { def directories ->
-                        render(directories)
+        prefix('api'){
+            get('list'){ AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
+                accountService.getActive().then({ List<Account> accounts ->
+                    Account account = accounts[0]
+                    if (accounts.isEmpty() || !account) {
+                        response.status(Status.UNAUTHORIZED).send('No account provided.')
+                    } else {
+                        Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
+                        Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
+                                account.username,
+                                account.password,
+                                folderId)
+                        directoriesPromise.then { def directories ->
+                            render(directories)
+                        }
                     }
-                }
-            })
+                })
+            } // api/list
+
+            get('search') { AccountService accountService, HttpClient client ->
+                accountService.getActive().then({ List<Account> accounts ->
+                    Account account = accounts[0]
+                    if (accounts.isEmpty() || !account){
+                        response.status(Status.NOT_FOUND).send('You must create a server account.')
+                    } else {
+                        def url = "${account.url}/services/rest/search/find".toURI()
+                        def pattern = request.queryParams['pattern']?:''
+                        def maxHits = request.queryParams['maxHits']?:10
+                        def folderId = request.queryParams['folderId']?:FOLDER_ID
+                        client.request(url, { RequestSpec reqSpec ->
+                            reqSpec.basicAuth(account.username, account.password)
+                            reqSpec.headers.set ("Accept", 'application/json')
+                            reqSpec.method('POST').body { def body ->
+                                body.text('{ "maxHits": '+maxHits+', "expression": "'+pattern+'", "expressionLanguage": "fr", "language": "fr", "folderId": '+folderId+' }')
+                            }.headers { MutableHeaders headers ->
+                                headers.set('Content-type','application/json')
+                            }
+                        }).then { ReceivedResponse res ->
+                            response.contentType('application/json').send(res.body.text)
+                        }
+                    }
+                })
+            } // api/search
+
+            get('documents/:folderId') { HttpClient client, AccountService accountService ->
+                accountService.getActive().then({ List<Account> accounts ->
+                    Account account = accounts[0]
+                    if (accounts.isEmpty() || !account) {
+                        response.status(Status.NOT_FOUND).send('You must create a server account.')
+                    } else {
+                        // List of documents
+                        def folderId = pathTokens['folderId']?: FOLDER_ID
+                        def url = "${account.url}/services/rest/document/listDocuments?folderId=${folderId}".toURI()
+                        client.get(url) { RequestSpec reqSpec ->
+                            reqSpec.basicAuth(account.username, account.password)
+                            reqSpec.headers.set ("Accept", 'application/json')
+                        }.then { ReceivedResponse res ->
+                            res.forwardTo(response)
+                        }
+                    }
+                })
+            } // api/documents/:folderId
         }
 
         get { AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
@@ -136,17 +183,36 @@ ratpack {
                         directoriesPromise.then { directories ->
                             render(view('index', ['directories': directories, 'account': account]))
                         }
-                        Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
+                        /*Promise<ObjectNode> folderStructurePromise = directoriesService.getFolderStructure(client,account.url,
                                 account.username,
                                 account.password,
                                 folderId)
                         folderStructurePromise.then({ folderStructure ->
                             String json = folderStructure.toPrettyString()
                             log.info(json)
-                        })
+                        })*/
                 }
             })
         }
+
+        get('document') { HttpClient client, AccountService accountService ->
+            accountService.getActive().then({ List<Account> accounts ->
+                Account account = accounts[0]
+                if (accounts.isEmpty() || !account) {
+                    response.status(Status.NOT_FOUND).send('You must create a server account.')
+                } else {
+                    // Download a document
+                    def url = "${account.url}/services/rest/document/getContent?docId=${request.queryParams['id']}".toURI()
+                    client.get(url) { RequestSpec reqSpec ->
+                        reqSpec.basicAuth(account.username, account.password)
+                    }.then {  ReceivedResponse res ->
+                        response.headers.set('Content-type', 'application/octet-stream')
+                        response.send(res.body.bytes)
+                    }
+                }
+            })
+
+        } // GET: /document
 
         get('preview'){
             render(view('preview'))
@@ -172,34 +238,11 @@ ratpack {
             all(chain(registry.get(AccountHandler)))
         }
 
-        get('search') { AccountService accountService, HttpClient client ->
-            accountService.getActive().then({ List<Account> accounts ->
-                Account account = accounts[0]
-                if (accounts.isEmpty() || !account){
-                    render(view("index", [message:'You must create a server account.']))
-                } else {
-                    def url = "${account.url}/services/rest/search/find".toURI()
-                    def pattern = request.queryParams['pattern']?:''
-                    def maxHits = request.queryParams['maxHits']?:10
-                    def folderId = request.queryParams['folderId']?:FOLDER_ID
-                    client.request(url, { def reqSpec ->
-                        reqSpec.basicAuth(account.username, account.password)
-                        reqSpec.headers.set ("Accept", 'application/json')
-                        reqSpec.method('POST').body { def body ->
-                            body.text('{ "maxHits": '+maxHits+', "expression": "'+pattern+'", "expressionLanguage": "fr", "language": "fr", "folderId": '+folderId+' }')
-                        }.headers { def headers ->
-                            headers.set('Content-type','application/json')
-                        }
-                    }).then { def res ->
-                        response.contentType('application/json').send(res.body.text)
-                    }
-                }
-                })
-
+        get('search') {
+            render(view('search'))
         }
 
         // Serve public files (assets...)
-//        files { dir 'static' }
         files { dir publicDir }
     }
 }

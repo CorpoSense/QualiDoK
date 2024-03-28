@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <head th:replace="partials/head" />
+
+</head>
+<body>
+<div th:replace="partials/header" />
+
+<div id="page-content" class="container">
+
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="form-group">
+                <input name="pattern" autofocus type="text" id="pattern" class="form-control input-lg" placeholder="Search for content..." value="">
+            </div>
+        </div>
+
+        <div class="col-sm-3">
+            <div class="form-group">
+                <select id="folderId" class="form-control input-lg">
+                    <option value="4">Directories</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- <div class="col-sm-1">
+          <div class="form-group">
+            <input type="number" id="maxHits" class="form-control input-lg" placeholder="Max result" value="10" >
+          </div>
+        </div> -->
+
+        <div class="col-sm-1">
+            <!-- <input type="number" id="maxHits" class="form-control" value="10" > -->
+            <button type="button" id="btn-search" class="btn btn-lg btn-success">
+                <i class="glyphicon glyphicon-search"></i> Search</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-info alert-lg">
+                <p id="result">Result of search</p>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <ul id="documents" style="list-style: decimal;"></ul>
+        </div>
+    </div>
+
+</div><!-- #page-content -->
+
+<div th:replace="partials/footer" />
+<script type="text/javascript" th:src="@{/assets/js/search.js}"></script>
+</body>
+</html>
