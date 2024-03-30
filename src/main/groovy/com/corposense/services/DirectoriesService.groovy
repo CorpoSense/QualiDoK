@@ -1,5 +1,6 @@
 package com.corposense.services
 
+import com.corposense.models.Account
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
@@ -14,19 +15,22 @@ import ratpack.http.client.ReceivedResponse
 
 class DirectoriesService {
 
+    private final HttpClient client
+
     private JsonSlurper jsonSlurper
     private ObjectMapper objectMapper
 
     @Inject
-    DirectoriesService(){
+    DirectoriesService(HttpClient client){
         this.jsonSlurper = new JsonSlurper()
         this.objectMapper = new ObjectMapper()
+        this.client = client
     }
 
-    Promise<String> listDirectories(HttpClient client,String url, String username, String password, Serializable folderId) {
+    Promise<String> listDirectories(/*HttpClient client,String url, String username, String password,*/ Account account, Serializable folderId) {
         try {
-            URI uri = getListChildrenUri(url, folderId)
-            Promise<ReceivedResponse> responsePromise = sendGetRequest(client, uri, username, password)
+            URI uri = getListChildrenUri(account.url, folderId)
+            Promise<ReceivedResponse> responsePromise = sendGetRequest(client, uri, account.username, account.password)
             return responsePromise.map({ def response ->
                 checkResponseStatus(response)
                 List<Map<String, Object>> directories = parseJsonResponse(response)

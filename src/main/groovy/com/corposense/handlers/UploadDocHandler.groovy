@@ -18,6 +18,7 @@ import static ratpack.jackson.Jackson.jsonNode
 
 //@CompileStatic
 class UploadDocHandler implements Action<Chain> {
+
     private final AccountService accountService
     private final UploadService uploadService
     private final ImageService imageService
