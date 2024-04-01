@@ -1,6 +1,7 @@
 import com.corposense.ConnectionInitializer
 import com.corposense.Constants
 import com.corposense.H2ConnectionDataSource
+import com.corposense.handlers.DmsRestEndpoint
 import com.corposense.models.Account
 import com.corposense.handlers.AccountHandler
 import com.corposense.handlers.OcrHandler
@@ -56,6 +57,7 @@ ratpack {
         })
         bind(H2ConnectionDataSource)
         bind(AccountService)
+        bind(DmsRestEndpoint)
         bindInstance(Service, new ConnectionInitializer())
         bind(OcrHandler)
         bind(SaveEditedTextHandler)
@@ -104,22 +106,8 @@ ratpack {
     handlers {
 
         // TODO: All endpoints should go to a server without rendering any UI
-        get('api'){ AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
-            accountService.getActive().then({ List<Account> accounts ->
-                Account account = accounts[0]
-                if (accounts.isEmpty() || !account) {
-                    response.status(Status.UNAUTHORIZED).send('No account provided.')
-                } else {
-                    Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                    Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
-                            account.username,
-                            account.password,
-                            folderId)
-                    directoriesPromise.then { def directories ->
-                        render(directories)
-                    }
-                }
-            })
+        prefix('api') {
+            all(chain(registry.get(DmsRestEndpoint)))
         }
 
         get { AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
@@ -131,10 +119,7 @@ ratpack {
 //                    render(view('index', ['directories': null, 'account': null]))
 //                    if (!System.getenv('GITHUB_ACTIONS')){
                         Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                        Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
-                                                                                                account.username,
-                                                                                                account.password,
-                                                                                                folderId)
+                        Promise<String> directoriesPromise = directoriesService.listDirectories(account, folderId)
 //
                         directoriesPromise.then { directories ->
                             render(view('index', ['directories': directories, 'account': account]))
