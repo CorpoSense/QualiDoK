@@ -9,32 +9,39 @@ import ratpack.handling.Chain
 
 import javax.inject.Inject
 
+import static ratpack.thymeleaf3.Template.thymeleafTemplate
+
 class DmsRestEndpoint implements Action<Chain> {
 
     final int FOLDER_ID = 4
     private final DirectoriesService  directoriesService
-    private final Account  account
-//    private final AccountService accountService
+    private final AccountService accountService
+//    private final Account  account
 
     @Inject
-    DmsRestEndpoint(DirectoriesService directoriesService, Account account /*, AccountService accountService*/){
+    DmsRestEndpoint(DirectoriesService directoriesService, /*Account account ,*/ AccountService accountService){
         this.directoriesService = directoriesService
-//        this.accountService = accountService
-        this.account = account
+        this.accountService = accountService
+//        this.account = account
     }
 
     @Override
     void execute(Chain chain) throws Exception {
         Groovy.chain(chain) {
-            path('api') {
+            path(':folderId?') {
                 byMethod {
                     get {
                         def folderId = pathTokens["folderId"] ?: FOLDER_ID
-//                        accountService.get(accountId).then({ def account ->
-                            directoriesService.listDirectories(account, folderId).then({ def directories ->
-                                render(directories)
-                            })
-//                        })
+                        accountService.getActive().then({ def accounts ->
+                            Account account = accounts[0]
+                            if (accounts.isEmpty() || !account){
+                                render([message:'You must create a server account.'])
+                            } else {
+                                directoriesService.listDirectories(account, folderId).then({ def directories ->
+                                    render(directories)
+                                })
+                            }
+                        })
                     }
                 }
             }

@@ -103,14 +103,14 @@ ratpack {
 
         }
     }
-    handlers {
+    handlers { AccountService accountService, DirectoriesService directoriesService  ->
 
         // TODO: All endpoints should go to a server without rendering any UI
         prefix('api') {
             all(chain(registry.get(DmsRestEndpoint)))
         }
 
-        get { AccountService accountService, HttpClient client, DirectoriesService directoriesService  ->
+        get { HttpClient client  ->
             accountService.getActive().then({ List<Account> accounts ->
                 Account account = accounts[0]
                 if (accounts.isEmpty() || !account){
