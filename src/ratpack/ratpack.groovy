@@ -105,7 +105,7 @@ ratpack {
     }
     handlers { AccountService accountService, DirectoriesService directoriesService  ->
 
-        // TODO: All endpoints should go to a server without rendering any UI
+        // API endpoints to communicate with DMS
         prefix('api') {
             all(chain(registry.get(DmsRestEndpoint)))
         }

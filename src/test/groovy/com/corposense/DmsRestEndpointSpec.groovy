@@ -2,6 +2,7 @@ package com.corposense
 
 import com.corposense.handlers.DmsRestEndpoint
 import com.corposense.models.Account
+import com.corposense.services.AccountService
 import com.corposense.services.DirectoriesService
 import ratpack.exec.Promise
 import ratpack.groovy.test.embed.GroovyEmbeddedApp
@@ -27,17 +28,28 @@ class DmsRestEndpointSpec extends Specification {
         }
     }
 
+    AccountService accountService
+    Account account
+    DirectoriesService directoriesServices
+
+    def setup() {
+        this.accountService = Mock(AccountService)
+        this.directoriesServices = Mock(DirectoriesService)
+        this.account = Mock(Account) //new Account(name: 'Main Server', url: dms.address, username: 'admin', password: 'admin', active: true)
+    }
+
     def "will render directories"() {
         given:
             def directories = '{"folderId":"4","subFolders":[{"id":"100","name":"Administration","subFolders":[]}]}'
 
             Promise<String> listDirectoriesPromise = Promise.value(directories)
-            def directoriesServices = Mock(DirectoriesService)
-            def account = Mock(Account)
+            Promise<List<Account>> accountPromise = Promise.value([account])
+            accountService.getActive() >> accountPromise
             directoriesServices.listDirectories(account, 4) >> listDirectoriesPromise
         when:
-            def result = handle(new DmsRestEndpoint(directoriesServices, account)) { uri("api") }
+            def result = handle(new DmsRestEndpoint(directoriesServices, accountService)) { uri("directories") }
         then:
             result.rendered(String) == directories
     }
+
 }

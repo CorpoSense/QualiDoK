@@ -27,7 +27,7 @@ class DirectoriesService {
         this.client = client
     }
 
-    Promise<String> listDirectories(/*HttpClient client,String url, String username, String password,*/ Account account, Serializable folderId) {
+    Promise<String> listDirectories(Account account, Serializable folderId) {
         try {
             URI uri = getListChildrenUri(account.url, folderId)
             Promise<ReceivedResponse> responsePromise = sendGetRequest(client, uri, account.username, account.password)
@@ -42,16 +42,16 @@ class DirectoriesService {
         }
     }
 
-    Promise<String> listDocuments(HttpClient client,String url, String username, String password, Serializable folderId) {
+    Promise<String> listDocuments(Account account, Serializable folderId) {
         try{
-            URI uri = "${url}/services/rest/document/listDocuments?folderId=${folderId}".toURI()
+            URI uri = "${account.url}/services/rest/document/listDocuments?folderId=${folderId}".toURI()
             //URI uri = "${url}/services/rest/search/findByFilename?filename=Capture1.pdf".toURI()
 
-            Promise<ReceivedResponse> responsePromise = sendGetRequest(client, uri, username, password)
+            Promise<ReceivedResponse> responsePromise = sendGetRequest(client, uri, account.username, account.password)
             return responsePromise.map({ response ->
                 checkResponseStatus(response)
-                List<Map<String, Object>> directories = parseJsonResponse(response)
-                return JsonOutput.toJson(directories)
+                List<Map<String, Object>> documents = parseJsonResponse(response)
+                return JsonOutput.toJson(documents)
             })
         } catch (URISyntaxException e) {
             throw new RuntimeException("Invalid URI: ${e.message}")
