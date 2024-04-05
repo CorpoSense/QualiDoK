@@ -52,4 +52,16 @@ class DmsRestEndpointSpec extends Specification {
             result.rendered(String) == directories
     }
 
+    def "will render documents"() {
+        given:
+            def documents = '{"folderId":"4","subFolders":[{"id":"100","name":"Administration","subFolders":[]}]}'
+            Promise<String> listDocumentsPromise = Promise.value(documents)
+            Promise<List<Account>> accountPromise = Promise.value([account])
+            accountService.getActive() >> accountPromise
+            directoriesServices.listDocuments(account, 4) >> listDocumentsPromise
+        when:
+            def result = handle(new DmsRestEndpoint(directoriesServices, accountService)) { uri("documents?folderId=100") }
+        then:
+            result.rendered(String) == documents
+    }
 }

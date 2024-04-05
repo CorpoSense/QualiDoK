@@ -47,7 +47,21 @@ class DmsRestEndpoint implements Action<Chain> {
                     }
                 }
             } // api/directories
-            
+
+            path('documents/:folderId?') {
+                accountService.getActive().then({ List<Account> accounts ->
+                    Account account = accounts[0]
+                    if (accounts.isEmpty() || !account) {
+                        response.status(Status.NOT_FOUND).send('You must create a server account.')
+                    } else {
+                        // List of documents
+                        def folderId = pathTokens['folderId']?: FOLDER_ID
+                        directoriesService.listDocuments(account, folderId).then({def documents ->
+                            render(documents)
+                        })
+                    }
+                })
+            } // api/documents/:folderId
         }
 
     }
