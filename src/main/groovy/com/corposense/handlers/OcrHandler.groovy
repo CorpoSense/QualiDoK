@@ -87,10 +87,7 @@ class OcrHandler implements Action<Chain> {
                                             log.info("Type of processing: ${typeOcr}")
 
                                             Serializable folderId = request.queryParams['folderId'] ?: FOLDER_ID
-                                            Promise<String> directoriesPromise = directoriesService.listDirectories(client,account.url,
-                                                                                                                            account.username,
-                                                                                                                            account.password,
-                                                                                                                            folderId)
+                                            Promise<String> directoriesPromise = directoriesService.listDirectories(account, folderId)
                                             directoriesPromise.then { directories ->
 
                                                 switch (typeOcr) {
